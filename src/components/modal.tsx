@@ -10,11 +10,12 @@ import Live from "./audioplayer/Live";
 
 import { Radio, RadioGroup } from "@headlessui/react";
 
+
 const plans = [
-  { name: "FM1", ram: "12GB", cpus: "6 CPUs", disk: "256GB SSD disk" },
-  { name: "FM2", ram: "16GB", cpus: "8 CPUs", disk: "512GB SSD disk" },
-  { name: "FM3", ram: "32GB", cpus: "12 CPUs", disk: "1TB SSD disk" },
-  { name: "FM4", ram: "32GB", cpus: "12 CPUs", disk: "1TB SSD disk" },
+  { name: "FM1", ram: "Scanner 1", aftertune: "1" },
+  { name: "FM2", ram: "Scanner 2", aftertune: "2" },
+  { name: "FM3", ram: "Scanner 3", aftertune: "3" },
+  { name: "FM4", ram: "Scanner 4", aftertune: "4" },
 ];
 
 interface StationList {
@@ -47,6 +48,9 @@ function ModalTags({
   const [aftertune, setAftertune] = useState<string | null>("1");
 
   const [selected, setSelected] = useState(plans[0]);
+
+  console.log(aftertune);
+  
 
   return (
     <div>
@@ -142,6 +146,9 @@ function ModalTags({
                         <Radio
                           key={plan.name}
                           value={plan}
+                          onClick={() => {
+                            setAftertune(plan.aftertune);
+                          }}
                           className="group relative flex cursor-pointer rounded-lg bg-white/5 px-5 py-4 text-white shadow-md transition focus:outline-none data-[checked]:bg-black/10 data-[focus]:outline-1 data-[focus]:outline-white"
                         >
                           <div className="flex w-full items-center justify-between">
@@ -151,10 +158,6 @@ function ModalTags({
                               </p>
                               <div className="flex gap-2 text-black">
                                 <div>{plan.ram}</div>
-                                <div aria-hidden="true">&middot;</div>
-                                <div>{plan.cpus}</div>
-                                <div aria-hidden="true">&middot;</div>
-                                <div>{plan.disk}</div>
                               </div>
                             </div>
                             <CheckCheckIcon className="size-6 fill-white opacity-0 transition group-data-[checked]:opacity-100" />

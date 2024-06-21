@@ -5,6 +5,7 @@ import ReactApexChart from "react-apexcharts";
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import Link from "next/link";
 
 interface FrequencyScaner {
   No: number;
@@ -42,13 +43,12 @@ function ChartFrequency() {
   //new array 2d data frequency from frequencyData Data[0] and Data[4]
   const frequencyNewData: [number[], number[]][] = frequencyData?.map(
     (item: any[]): [number[], number[]] => [
-      item.map((subItem: number[]): number => subItem[0]),
+      item.map((subItem: number[]): number => (subItem[0] / 100).toFixed(2)),
       item.map((subItem: number[]): number => subItem[5]),
       item.map((subItem: number[]): number => subItem[4]),
     ],
   );
-  console.log(frequencyNewData);
-
+  //console.log(frequencyNewData);
 
   if (isError) {
     return <div>Error</div>;
@@ -65,6 +65,15 @@ function ChartFrequency() {
         options={{
           chart: {
             id: "basic-bar",
+            events: {
+              //onclick to show alert data frequency and snr from api
+              click: function (event: any, chartContext: any, config: any) {
+                const frequency =
+                  frequencyNewData?.[0]?.[0][config.dataPointIndex];
+                const snr = frequencyNewData?.[0]?.[2][config.dataPointIndex];
+                alert(`Frequency: ${frequency} KHz, SNR: ${snr} dB`);
+              },
+            },
           },
           xaxis: {
             categories: frequencyNewData?.[0]?.[0] ?? [],
@@ -92,7 +101,7 @@ function ChartFrequency() {
           },
         ]}
         type="bar"
-        width={800}
+        width={900}
         height={320}
       />
     </>
