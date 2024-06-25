@@ -16,6 +16,10 @@
   "dependencies": {
     "@clerk/nextjs": "5.0.0-beta.46",
     "@headlessui/react": "^2.0.4",
+    "@nivo/bar": "^0.87.0",
+    "@nivo/core": "^0.87.0",
+    "@nivo/line": "^0.87.0",
+    "@react-icons/all-files": "^4.1.0",
     "@t3-oss/env-nextjs": "^0.9.2",
     "@tanstack/react-query": "^5.40.1",
     "@vidstack/react": "^1.11.21",
@@ -36,6 +40,7 @@
     "react-animated-counter": "^1.7.7",
     "react-apexcharts": "^1.4.1",
     "react-dom": "18.2.0",
+    "react-icons": "^5.2.1",
     "react-leaflet": "4.2.1",
     "react-leaflet-locate-control": "^0.1.6",
     "react-modern-audio-player": "1.4.0-rc.2",

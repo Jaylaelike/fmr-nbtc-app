@@ -11,7 +11,15 @@ const config = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-  }
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tailwind-generator.b-cdn.net',
+      },
+    ],
+  },
 };
 
 export default config;

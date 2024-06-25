@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import { Map } from 'lucide-react';
 
 interface Propstype {
   stations: unknown;
@@ -137,7 +138,7 @@ function TableFrequncy({
 
   return (
     <div>
-      <div className="overflow-x-auto space-y-4">
+      <div className="space-y-4 overflow-x-auto">
         <table className="table table-zebra">
           {/* head */}
           <thead>
@@ -145,8 +146,9 @@ function TableFrequncy({
               <th>Station_ID</th>
               <th>Transmitter_Name</th>
               <th>Distance(km)</th>
-              <th>Frequency</th>
+              <th>Frequency(MHz)</th>
               <th>SNR(dBm)</th>
+              <th>Locations</th>
             </tr>
           </thead>
           <tbody>
@@ -155,9 +157,9 @@ function TableFrequncy({
             ) : (
               <>
                 <tr>
-                <div className="p-4">
-                  <span className="badge badge-success">พบข้อมูลความถี่</span>
-                </div>
+                  <div className="p-4">
+                    <span className="badge badge-success">พบข้อมูลความถี่</span>
+                  </div>
                 </tr>
                 {(stationsWithSNR as StationList[])
                   .filter(
@@ -171,6 +173,16 @@ function TableFrequncy({
                       <td>{item.distance_km.toFixed(2)}</td>
                       <td>{item.Frequency.toFixed(2)}</td>
                       <td>{item.SNR}</td>
+                      <td>
+                        {/* Generate and add the Google Maps link */}
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${item.Latitude},${item.Longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                            เปิดในแผนที่ <Map />
+                        </a>
+                      </td>
                     </tr>
                   ))}
               </>

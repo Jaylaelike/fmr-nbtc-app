@@ -55,13 +55,18 @@ function topNav() {
               window.location.href = "/";
             }}
           >
-            FMR NBTC
+            RRS System NBTC 
+            
           </a>
         </div>
         <div className="navbar-center hidden lg:flex">
           <ul className="menu menu-horizontal px-1">
             <li>
-              <a>Map Dashboard</a>
+              <a
+              onClick={() => {
+                window.location.href = "/form";
+              }}
+              >Record Table</a>
             </li>
             <li>
               <details>

@@ -2,10 +2,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import axios from "axios";
 import ChartFrequency from "~/components/chart/ChartFrequency";
 import TableFrequncy from "~/components/table/TableFrequncy";
+
+import { Video } from "lucide-react";
+import { PiRecordFill } from "react-icons/pi";
+
+import { AnimatedCounter } from "react-animated-counter";
+import Minimaps from "~/components/minimaps/Minimaps";
+import { debounce } from "lodash";
 
 interface MapsId {
   params: {
@@ -165,59 +172,106 @@ function ModalTags({ params: { id } }: MapsId) {
   const frequencyNewData: [number[], number[]][] = frequencyData?.map(
     (item: any[]): [number[], number[]] => [
       item.map((subItem: number[]): number => subItem[0] / 100),
-      item.map((subItem: number[]): number => subItem[5] >= 10 ? subItem[5] : 0),
+      item.map((subItem: number[]): number =>
+        subItem[5] >= 10 ? subItem[5] : 0,
+      ),
       item.map((subItem: number[]): number => subItem[4]),
     ],
   );
 
   console.log(frequencyNewData);
-  
 
   // filter only  frequencyNewData[1] !=0  form frequencyNewData
 
-  const frequencyNewDataFilter = frequencyNewData?.map((item) => { 
-    return [item[0].filter((_, index) => item[1][index] != 0), item[1].filter((item) => item != 0)];
-  }
-  );
+  const frequencyNewDataFilter = frequencyNewData?.map((item) => {
+    return [
+      item[0].filter((_, index) => item[1][index] != 0),
+      item[1].filter((item) => item != 0),
+    ];
+  });
 
   console.log(frequencyNewDataFilter);
 
-
- 
-
-
+  const debouncedSetDistance = debounce((value: number) => {
+    setDistance(value);
+  }, 100);
 
   return (
     <main className="flex-col items-center justify-center p-10 pt-20">
       <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
-        <div className="row-span-3 w-full rounded-xl bg-fuchsia-900 p-4">
+        <div className="row-span-3 w-full space-y-2 rounded-xl bg-fuchsia-900 p-4">
           <h2 className="card-title text-3xl text-white">Scan</h2>
-          <div className="grid grid-cols-2 gap-2 px-4 py-4 xl:grid-cols-5">
-            <button className="btn btn-warning" onClick={() => setDistance(10)}>
-              10 km
-            </button>
-            <button className="btn btn-warning" onClick={() => setDistance(20)}>
-              20 km
-            </button>
-            <button className="btn btn-warning" onClick={() => setDistance(20)}>
-              30 km
-            </button>
-            <button className="btn btn-warning" onClick={() => setDistance(40)}>
-              40 km
-            </button>
+
+          <div className="grid grid-cols-1 justify-items-center gap-4">
+
+            <div className="grid grid-cols-2 gap-2 px-4 py-4 xl:grid-cols-4 justify-items-between">
+              <button
+                className="btn btn-warning"
+                onClick={() => setDistance(20)}
+              >
+                20 km
+              </button>
+              <button
+                className="btn btn-warning"
+                onClick={() => setDistance(30)}
+              >
+                30 km
+              </button>
+              <button
+                className="btn btn-warning"
+                onClick={() => setDistance(40)}
+              >
+                40 km
+              </button>
+              <button
+                className="btn btn-warning"
+                onClick={() => setDistance(50)}
+              >
+                50 km
+              </button>
+            </div>
+            <input
+              type="number"
+              placeholder="ระยะทาง (KM)"
+              className="input input-bordered  w-full max-w-xs 
+            bg-fuchsia-400 text-3xl"
+              value={distance}
+              onChange={(e) => debouncedSetDistance(parseInt(e.target.value))}
+              max={50}
+              min={10}
+              step={5}
+            />
+
+            <div className="grid grid-cols-1 justify-items-center gap-2">
+              <AnimatedCounter
+                value={distance || undefined}
+                color="white"
+                fontSize="50px"
+                decimalPrecision={0}
+              />
+              <span className="text-3xl text-white">KM</span>
+            </div>
           </div>
         </div>
         <div className="col-span-2 w-full rounded-xl bg-fuchsia-800 p-4 text-3xl text-white">
           สถานี : {dataStation.map((item) => item.Station_Name)}
         </div>
+
         <div className="col-span-2 row-span-2 w-full rounded-xl bg-fuchsia-700 p-4 text-3xl text-white">
-          ความถี่ : {dataStation.map((item) => item.Frequency)}
+          <Minimaps id={id} />
         </div>
+
+        {/* <div className="col-span-2 row-span-2 w-full rounded-xl bg-fuchsia-700 p-4 text-3xl text-white">
+          <AnimatedCounter value={dataStation.map((item) => item.Frequency)} color="AEB6BF" fontSize="100px" />
+
+            </div> */}
       </div>
 
       <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
-        <div className="row-span-3 w-full rounded-xl bg-red-300 p-4 text-3xl text-white">
+        <div className="row-span-3 w-full rounded-xl bg-red-400 p-4 text-3xl text-white">
           Record
+          <Video />
+          <PiRecordFill />
         </div>
 
         <div className="col-span-2 w-full rounded-xl bg-red-400 p-4">

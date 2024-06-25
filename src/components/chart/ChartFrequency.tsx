@@ -5,7 +5,8 @@ import ReactApexChart from "react-apexcharts";
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import Link from "next/link";
+
+import { useState } from "react";
 
 interface FrequencyScaner {
   No: number;
@@ -15,6 +16,9 @@ interface FrequencyScaner {
 }
 
 function ChartFrequency() {
+  const [frequencyOnClick, setFrequencyOnClick] = useState<number>(0);
+  const [snrOnClick, setSnrOnClick] = useState<number>();
+
   const { data, isLoading, isError, isLoadingError, isPending, isFetching } =
     useQuery({
       queryKey: ["scanner"],
@@ -61,6 +65,13 @@ function ChartFrequency() {
           <span className="loading loading-spinner loading-lg size-40"></span>
         </div>
       )}
+      <div className="gird items-center justify-items-center pl-10
+      ">
+        <span className="text-white">
+          Frequency: {frequencyOnClick} KHz, SNR: {snrOnClick} dB
+        </span>
+      </div>
+
       <ReactApexChart
         options={{
           chart: {
@@ -70,8 +81,11 @@ function ChartFrequency() {
               click: function (event: any, chartContext: any, config: any) {
                 const frequency =
                   frequencyNewData?.[0]?.[0][config.dataPointIndex];
+
+                setFrequencyOnClick(frequency || 0);
+
                 const snr = frequencyNewData?.[0]?.[2][config.dataPointIndex];
-                alert(`Frequency: ${frequency} KHz, SNR: ${snr} dB`);
+                setSnrOnClick(snr || 0);
               },
             },
           },
