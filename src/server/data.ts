@@ -1,3 +1,5 @@
+import { DatetimeFsp } from "drizzle-orm/mysql-core";
+
 export const projects = [
   {
     title: "FMR",
@@ -84,3 +86,17 @@ export const streamAudio = [
     id: 1,
   },
 ];
+
+
+export type CreateRecord  = {
+  stationId: number;
+  ipAddress: string;
+  startTime: DatetimeFsp;
+  endTime: DatetimeFsp;
+  dayofweek: string;
+  dailyStartTime: DatetimeFsp;
+  dailyEndTime: DatetimeFsp;
+  frequncy: string;
+  userId: string;
+  username: string;
+}

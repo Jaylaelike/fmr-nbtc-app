@@ -47,12 +47,18 @@ function ChartFrequency() {
   //new array 2d data frequency from frequencyData Data[0] and Data[4]
   const frequencyNewData: [number[], number[]][] = frequencyData?.map(
     (item: any[]): [number[], number[]] => [
-      item.map((subItem: number[]): number => (subItem[0] / 100).toFixed(2)),
-      item.map((subItem: number[]): number => subItem[5]),
-      item.map((subItem: number[]): number => subItem[4]),
+      item
+        .filter((subItem: number[]): boolean => subItem[0] !== 0)
+        .map((subItem: number[]): number => (subItem[0] / 100).toFixed(2)),
+      item
+        .filter((subItem: number[]): boolean => subItem[0] !== 0)
+        .map((subItem: number[]): number => subItem[4]),
+      item
+        .filter((subItem: number[]): boolean => subItem[0] !== 0)
+        .map((subItem: number[]): number => subItem[5]),
     ],
   );
-  //console.log(frequencyNewData);
+  console.log(frequencyNewData);
 
   if (isError) {
     return <div>Error</div>;
@@ -65,8 +71,10 @@ function ChartFrequency() {
           <span className="loading loading-spinner loading-lg size-40"></span>
         </div>
       )}
-      <div className="gird items-center justify-items-center pl-10
-      ">
+      <div
+        className="gird items-center justify-items-center pl-10
+      "
+      >
         <span className="text-white">
           Frequency: {frequencyOnClick} KHz, SNR: {snrOnClick} dB
         </span>
@@ -101,10 +109,25 @@ function ChartFrequency() {
               text: "SNR(dB)",
             },
           },
+          responsive: [
+            {
+              breakpoint: undefined,
+              options: {
+                plotOptions: {
+                  bar: {
+                    horizontal: true
+                  }
+                },
+                legend: {
+                  position: "bottom"
+                }
+              }
+            }
+          ]
         }}
         series={[
           {
-            name: "ความถี่",
+            name: "fs",
             data: frequencyNewData?.[0]?.[1] ?? [],
             color: "#40E0D0",
           },
