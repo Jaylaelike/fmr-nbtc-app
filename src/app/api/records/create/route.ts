@@ -1,4 +1,4 @@
-"user server";
+
 import db from "../../../../server/db";
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -25,6 +25,7 @@ export async function POST(req: Request) {
       dailyStartTime: requestData.dailyStartTime,
       dailyEndTime: requestData.dailyEndTime,
       frequncy: requestData.frequncy,
+      channel: requestData.channel,
       userId: user?.userId,
       username: currentUsers?.fullName,
     });

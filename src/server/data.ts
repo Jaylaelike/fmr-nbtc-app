@@ -1,3 +1,4 @@
+import { channel } from 'diagnostics_channel';
 import { DatetimeFsp } from "drizzle-orm/mysql-core";
 
 export const projects = [
@@ -97,6 +98,7 @@ export type CreateRecord  = {
   dailyStartTime: DatetimeFsp;
   dailyEndTime: DatetimeFsp;
   frequncy: string;
+  channel: string;
   userId: string;
   username: string;
 }

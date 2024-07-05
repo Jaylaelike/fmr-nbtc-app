@@ -77,15 +77,15 @@ function TableFrequncy({
   // const stationfouder = stations?.data?.data[0].Frequency;
 
   // Filter the stations data to get only those stations whose frequency is in the frequencies array
-  const filteredStations = stations?.data?.data.filter((item: StationList) => {
-    return frequencyNewDataFilter[0][0].includes(item.Frequency);
-  });
+  const filteredStations = stations?.data?.data?.filter((item: StationList) => {
+    return frequencyNewDataFilter?.[0]?.[0]?.includes(item.Frequency);
+  }) || [];
 
   console.log(filteredStations);
 
   // frequency in the frequencyNewDataFilter[0][0] has no data in station.Frequency in the stations data
   const filterFrequency =
-    frequencyNewDataFilter && frequencyNewDataFilter[0][0];
+    frequencyNewDataFilter && frequencyNewDataFilter[0][0] || [];
   const filterStation = stations?.data?.data.map(
     (item: StationList) => item.Frequency,
   );

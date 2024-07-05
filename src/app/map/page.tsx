@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use client";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
 
-import { RadioTower, Radio, LocateFixed } from "lucide-react";
+import { RadioTower, Radio, LocateFixed, Search } from "lucide-react";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -13,7 +15,7 @@ import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 import "leaflet/dist/leaflet.css";
 import "leaflet-geosearch/assets/css/leaflet.css";
 
-import L, { LatLngLiteral } from "leaflet";
+import L, { type LatLngLiteral } from "leaflet";
 
 import "../types";
 import ModalTags from "~/components/modal";
@@ -38,6 +40,26 @@ function CurrentLocationMarker() {
       map.flyTo([latitude, longitude], 13); // Focus the map on the current location
     });
   }, [map]);
+
+  useEffect(() => {
+    if (!map) return; // Ensure map is available
+
+    const success = (position: {
+      coords: { latitude: number; longitude: number };
+    }) => {
+      const { latitude, longitude } = position.coords;
+      setPosition([latitude, longitude]);
+      if (map) {
+        map.flyTo([latitude, longitude], 13); // Safely call flyTo
+      }
+    };
+
+    const error = (error: any) => {
+      console.error("Geolocation error:", error);
+    };
+
+    navigator.geolocation.getCurrentPosition(success, error);
+  }, [map]); // Dependency array includes map to ensure effect runs when map is available
 
   return position === null ? null : (
     <Marker
@@ -109,16 +131,82 @@ interface StationList {
   Remark: string;
 }
 
+//set state of search data filter in search bar
+const SearchBarAutoMini = ({
+  stationdata,
+  onLocationSelect,
+}: {
+  stationdata: StationList[];
+  onLocationSelect: (location: { Latitude: number; Longitude: number }) => void;
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<StationList[]>([]);
+
+  const handleClick = (Latitude: number, Longitude: number) => {
+    onLocationSelect({ Latitude, Longitude });
+  };
+
+  useEffect(() => {
+    const results = stationdata.filter((station) =>
+      JSON.stringify(station).toLowerCase().includes(searchTerm),
+    ) as StationList[];
+    setSearchResults(results);
+  }, [searchTerm, stationdata]);
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="ค้นหาสถานี"
+        className="input input-bordered"
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+        }}
+      />
+
+      <ul className="scroll-smooth focus:scroll-auto">
+        {searchResults.map((station: StationList) => (
+          <li
+            key={station.Station_ID}
+            onClick={() => {
+              handleClick(station.Latitude, station.Longitude);
+            }}
+          >
+            <a className="hover:bg-error">
+              {/* Assuming Radio is a component defined elsewhere */}
+              <Radio color="#2ECC71" size={35} />
+              {station.Transmitter_Name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 export default function Page() {
   // const [locations, setLocations] = useState([] as StationList[]);
   const [location, setLocation] = useState<LatLngLiteral>({
     lat: 13.751389,
     lng: 100.4925,
   });
-  const [activeLocation, setActiveLocation] = useState(null);
+  const [activeLocation, setActiveLocation] = useState<LatLngLiteral | null>(
+    null,
+  );
   const [showModal, setShowModal] = useState(false);
   // const [sourceStatus, setSourceStatus] = useState<string>("source1"); // Add setStatusSource state
   // const [aftertune, setAftertune] = useState<string | null>("1");
+
+  console.log(activeLocation);
+
+  // Assuming map initialization happens here and sets the map state
+
+  // Effect to fly to the new location when onclick to change location form SearchBarAutoMini to set  setActiveLocation
+
+  // Callback function to update location
+  const handleLocationChange = (newLocation: L.LatLngLiteral) => {
+    setActiveLocation(newLocation);
+  };
 
   // Fetch location data using useQuery
   const { data, isLoading, isError, isLoadingError, isPending, isFetching } =
@@ -187,7 +275,7 @@ export default function Page() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {data?.data.map((location) => (
+          {data?.data.map((location: SetStateAction<null>) => (
             <Marker
               key={location.Station_Name}
               position={[location.Latitude, location.Longitude]}
@@ -226,7 +314,7 @@ export default function Page() {
         {/* ShowModalTags */}
         {showModal && activeLocation && (
           <ModalTags
-            activeLocation={activeLocation}
+            activeLocation={activeLocation || null}
             showModal={setShowModal as (showModal: boolean) => void}
           />
         )}
@@ -249,19 +337,18 @@ export default function Page() {
               aria-label="close sidebar"
               className="drawer-overlay"
             ></label>
+
             <ul className="menu min-h-full w-80 bg-base-200 p-4 text-base-content">
-              {/* Sidebar content here */}
-              {data?.data.map((station) => (
-                <li
-                  key={station.Station_ID}
-                  onClick={() => setActiveLocation(station)}
-                >
-                  <a className="hover:bg-error">
-                    <Radio color="#2ECC71" size={35} />
-                    {station.Transmitter_Name}
-                  </a>
-                </li>
-              ))}
+              {/* input search filter all data every field and show in Sidebar content here  } */}
+
+              <div className="grid grid-flow-col">
+                <SearchBarAutoMini
+                  stationdata={data?.data || undefined}
+                  onLocationSelect={handleLocationChange}
+                />
+
+                <Search size={32} />
+              </div>
             </ul>
           </div>
         </div>

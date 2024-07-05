@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
@@ -22,6 +23,16 @@ import { CreateRecord } from "~/server/data";
 import { useRouter } from "next/navigation";
 
 import AlertDialogDelButton from "~/components/dialog/alertDialogDelButton";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+import { LoaderPinwheelIcon, Tv } from "lucide-react";
+import loading from "~/app/loading";
+import Loading from "~/app/loading";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface MapsId {
   params: {
@@ -35,6 +46,7 @@ interface RecordType {
   ipAddress: string;
   // startTime: string;
   // endTime: string;
+  channel: string;
   frequncy: string;
   userId: string;
   username: string;
@@ -89,6 +101,21 @@ function ModalTags({ params: { id } }: MapsId) {
 
   console.log(latitudeData[0]);
   console.log(longitudeData[0]);
+
+  //state for FM  devices
+  // const [fmdevices, setFmDevices] = useState("FM 1");
+
+  const [selectedFmDevice, setSelectedFmDevice] = useState("");
+
+  const setFmDevices = (device: string) => {
+    setSelectedFmDevice(device);
+  };
+
+  const isSelected = (device: string) => {
+    return selectedFmDevice === device
+      ? "bg-gradient-to-b from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%"
+      : "bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500";
+  };
 
   // //fetch data raduis distance from station use useQuery
   // // "http://localhost:4000/api/station/13.8674474/100.5743324/30"
@@ -230,13 +257,24 @@ function ModalTags({ params: { id } }: MapsId) {
     reset,
   } = useForm();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleCreatRecords: SubmitHandler<CreateRecord> = async (data) => {
+    setIsSubmitting(true);
+    // Your form submission logic here
+    try {
+      // Simulate form submission
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // If submission is successful or you need to allow re-submission, reset the state
+    } catch (error) {
+      // Handle error
+    }
+    setIsSubmitting(false); // Re-enable the button after form processing
     createRecords(data);
   };
 
   const router = useRouter();
 
-  const { mutate: createRecords } = useMutation({
+  const { mutate: createRecords, isPending } = useMutation({
     mutationFn: (newRecord: CreateRecord) => {
       return axios.post("/api/records/create", newRecord);
     },
@@ -252,22 +290,24 @@ function ModalTags({ params: { id } }: MapsId) {
   });
 
   //get Dayofweek
-  const getDayofweek = (day: number): string => {
+  const getDayofweek = (day: string): string => {
     switch (day) {
-      case 0:
+      case "0":
         return "Sunday";
-      case 1:
+      case "1":
         return "Monday";
-      case 2:
+      case "2":
         return "Tuesday";
-      case 3:
+      case "3":
         return "Wednesday";
-      case 4:
+      case "4":
         return "Thursday";
-      case 5:
+      case "5":
         return "Friday";
-      case 6:
+      case "6":
         return "Saturday";
+      case "7":
+        return "Everyday";
       default:
         return "Sunday";
     }
@@ -275,23 +315,6 @@ function ModalTags({ params: { id } }: MapsId) {
 
   return (
     <main className="flex-col items-center justify-center p-10 pt-20">
-      <section className="rounded-lg bg-fuchsia-900 p-4 text-white">
-        <h2 className="text-2xl font-bold">Chanel : FM 1</h2>
-        <div className="mt-4 flex flex-wrap justify-items-center gap-4">
-          <button className="rounded-full bg-yellow-500 px-4 py-2 text-black">
-            FM 1
-          </button>
-          <button className="rounded-full bg-yellow-500 px-4 py-2 text-black">
-            FM 2
-          </button>
-          <button className="rounded-full bg-yellow-500 px-4 py-2 text-black">
-            FM 3
-          </button>
-          <button className="rounded-full bg-yellow-500 px-4 py-2 text-black">
-            FM 4
-          </button>
-        </div>
-      </section>
       <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
         <div className="row-span-3 w-full space-y-2 rounded-xl bg-fuchsia-900 p-4">
           <h2 className="card-title text-3xl text-white">Distance Scan</h2>
@@ -360,165 +383,215 @@ function ModalTags({ params: { id } }: MapsId) {
             </div> */}
       </div>
 
-      <section
-        className="grid grid-cols-1 p-4 md:grid-cols-3"
-      >
+      <section className="rounded-lg bg-red-400 p-4 text-white">
+        <h2 className="text-2xl font-bold">FM Devices : {selectedFmDevice}</h2>
+
+        <div className="mt-4 flex flex-wrap justify-items-center gap-4">
+          {["FM 1", "FM 2", "FM 3", "FM 4"].map((device, index) => (
+            <button
+              key={index}
+              className={`rounded-lg ${isSelected(device)} px-4 py-2 text-black`}
+              onClick={() => setFmDevices(device)}
+            >
+              {device}
+              <Tv size={24} />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 p-4 md:grid-cols-3">
         <div className="col-span-3 rounded-lg bg-red-400 p-4 text-white">
           <h2 className="text-2xl font-bold">Frequency Chart</h2>
 
           <ChartFrequencyAnt />
         </div>
       </section>
+  
+      {isPending ? (
+        <Loading />
+      ) : (
+        <section className="grid  gap-4 md:grid-cols-3 ">
+          <div className="rounded-lg bg-red-300 p-4 text-white ">
+            <h2 className="text-2xl font-bold">Record</h2>
 
-      <section className="grid  gap-4 md:grid-cols-3 ">
-        <div className="rounded-lg bg-red-300 p-4 text-white ">
-          <h2 className="text-2xl font-bold">Record</h2>
+            <form
+              onSubmit={handleSubmit(handleCreatRecords)}
+              className="grid grid-cols-1 space-y-5 p-5"
+            >
+              <input
+                {...register("stationId", { required: true })}
+                type="hidden"
+                value={id}
+                placeholder="Station ID"
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              />
 
-          <form
-            onSubmit={handleSubmit(handleCreatRecords)}
-            className="grid grid-cols-1 space-y-5 p-5"
-          >
-            <input
-              {...register("stationId", { required: true })}
-              type="text"
-              value={id}
-              placeholder="Station ID"
-              className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
-            />
+              <input
+                {...register("channel", { required: true })}
+                type="text"
+                placeholder="FM 1"
+                value={selectedFmDevice}
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              />
+              {errors.channel && <span>This field is required</span>}
 
-            <input
-              {...register("ipAddress", { required: true })}
-              type="text"
-              value={"101.101.34.56"}
-              placeholder="IP Address"
-              className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
-            />
+              <input
+                {...register("ipAddress", { required: true })}
+                type="text"
+                value={"101.101.34.56"}
+                placeholder="IP Address"
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              />
 
-            <input
-              {...register("frequncy", { required: true })}
-              type="text"
-              placeholder="Frequency"
-              className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
-            />
-            {errors.frequency && <span>This field is required</span>}
-            <input
-              {...register("startTime", { required: true })}
-              type="datetime-local"
-              placeholder="Start DateTime"
-              className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
-            />
-            {errors.startTime && <span>This field is required</span>}
-            <input
-              {...register("endTime", { required: true })}
-              type="datetime-local"
-              placeholder="End DateTime"
-              className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
-            />
-            {errors.endTime && <span>This field is required</span>}
-            <input
-              {...register("dailyStartTime", { required: true })}
-              type="time"
-              placeholder="Daily Start Time"
-              className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
-            />
-            {errors.dailyStartTime && <span>This field is required</span>}
-            <input
-              {...register("dailyEndTime", { required: true })}
-              type="time"
-              placeholder="Daily End Time"
-              className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
-            />
-            {errors.dailyEndTime && <span>This field is required</span>}
+              <input
+                {...register("frequncy", { required: true })}
+                type="text"
+                placeholder="Frequency"
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              />
+              {errors.frequency && <span>This field is required</span>}
+              <input
+                {...register("startTime", { required: true })}
+                type="datetime-local"
+                placeholder="Start DateTime"
+                className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
+              />
+              {errors.startTime && <span>This field is required</span>}
+              <input
+                {...register("endTime", { required: true })}
+                type="datetime-local"
+                placeholder="End DateTime"
+                className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
+              />
+              {errors.endTime && <span>This field is required</span>}
+              <input
+                {...register("dailyStartTime", { required: true })}
+                type="time"
+                placeholder="Daily Start Time"
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              />
+              {errors.dailyStartTime && <span>This field is required</span>}
+              <input
+                {...register("dailyEndTime", { required: true })}
+                type="time"
+                placeholder="Daily End Time"
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              />
+              {errors.dailyEndTime && <span>This field is required</span>}
 
-            <div className="grid grid-cols-3 gap-2 space-x-2">
-              {[
-                "Sunday",
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-              ].map((day, index) => (
-                <label key={index} className="text-black">
-                  <input
-                    {...register("dayofweek", { required: true })}
-                    type="radio"
-                    value={index}
-                    className="radio-primary radio"
-                    defaultChecked={index === 0}
-                  />
-                  {day}
-                </label>
-              ))}
+              <div className="grid grid-cols-3 gap-2 space-x-2">
+                {[
+                  "Sunday",
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Everyday",
+                ].map((day, index) => (
+                  <label key={index} className="text-black">
+                    <input
+                      {...register("dayofweek", { required: true })}
+                      type="radio"
+                      value={index}
+                      className="radio-primary radio"
+                      defaultChecked={index === 0}
+                    />
+                    {day}
+                  </label>
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isPending || isSubmitting}
+                {...(isSubmitting ? "Submitting..." : "Submit")}
+              >
+                Submit
+              </button>
+            </form>
+
+          </div>
+
+          <div className="col-span-2 w-full rounded-lg bg-red-400 p-4 text-white">
+            <div className="row-span-3 w-full  p-4 text-3xl text-white">
+              Table of Records
             </div>
 
-            <button type="submit" className="btn btn-primary">
-              Submit
-            </button>
-          </form>
-        </div>
+            <div className="overflow-x-auto">
+              <table className="table table-zebra text-black">
+                {/* head */}
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Station ID</th>
+                    <th>IP Address</th>
+                    <th>Channel</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Day of Week</th>
+                    <th>Daily Start Time</th>
+                    <th>Daily End Time</th>
+                    <th>Frequency</th>
 
-        <div className="col-span-2 w-full rounded-lg bg-red-400 p-4 text-white">
-          <div className="row-span-3 w-full  p-4 text-3xl text-white">
-            Table of Records
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="table table-zebra text-black">
-              {/* head */}
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Station ID</th>
-                  <th>IP Address</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Day of Week</th>
-                  <th>Daily Start Time</th>
-                  <th>Daily End Time</th>
-                  <th>Frequency</th>
-
-                  <th>User Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recordsData.data?.data.map((item: RecordType) => (
-                  <tr key={item.id}>
-                    <td>{item.id}</td>
-                    <td>{item.stationId}</td>
-                    <td>{item.ipAddress}</td>
-                    <td>{item.startTime}</td>
-                    <td>{item.endTime}</td>
-                    <td>{getDayofweek(item.dayofweek.toString())}</td>
-                    <td>{item.dailyStartTime?.slice(0, -7)}</td>
-                    <td>{item.dailyEndTime?.slice(0, -7)}</td>
-                    <td>{item.frequncy}</td>
-                    <td>{item.username}</td>
-                    <td>
-                      <td>
-                        <AlertDialogDelButton
-                          alertId={item.id}
-                          stationIds={id}
-                        />
-                      </td>
-
-                      <button
-                        className="btn-danger btn"
-                        onClick={() => router.push(`/edit/${item.id}`)}
-                      >
-                        แก้ไข
-                      </button>
-                    </td>
+                    <th>User Name</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+                </thead>
+                <tbody>
+                  {recordsData.data?.data
+                    .filter(
+                      (item: RecordType) =>
+                        selectedFmDevice === "" ||
+                        item.channel === selectedFmDevice,
+                    )
+                    .map((item: RecordType) => (
+                      <tr key={item.id}>
+                        <td>{item.id}</td>
+                        <td>{item.stationId}</td>
+                        <td>{item.ipAddress}</td>
+                        <td>{item.channel}</td>
+                        <td>
+                          {dayjs(item.startTime)
+                            .tz("Asia/Bangkok")
+                            .format("DD-MM-YYYY HH:mm:ss")}
+                        </td>
+                        <td>
+                          {dayjs(item.endTime)
+                            .tz("Asia/Bangkok")
+                            .format("DD-MM-YYYY HH:mm:ss")}
+                        </td>
+                        <td>{getDayofweek(item.dayofweek.toString())}</td>
+                        <td>{item.dailyStartTime?.slice(0, -7)}</td>
+                        <td>{item.dailyEndTime?.slice(0, -7)}</td>
+                        <td>{item.frequncy}</td>
+                        <td>{item.username}</td>
+                        <td>
+                          <td>
+                            <AlertDialogDelButton
+                              alertId={item.id}
+                              stationIds={id}
+                            />
+                          </td>
 
-      
+                          <button
+                            className="btn-danger btn"
+                            onClick={() => router.push(`/edit/${item.id}`)}
+                          >
+                            แก้ไข
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
         <div className="col-span-2 w-full rounded-xl bg-red-400 p-4">
           <div className="row-span-3 w-full  p-4 text-3xl text-white">

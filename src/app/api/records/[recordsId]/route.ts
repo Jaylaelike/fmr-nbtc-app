@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { CreateRecord } from "~/server/data";
 
+
 interface contextProps {
   params: {
     recordsId: number;
@@ -37,10 +38,11 @@ export async function PATCH(req: Request, context: contextProps) {
       .set({
         stationId: body.stationId,
         ipAddress: body.ipAddress,
-        startTime: body.startTime,
-        endTime: body.endTime,
+        startTime: new Date(body.startTime),
+        endTime: new Date(body.endTime),
         frequncy: body.frequncy,
         dayofweek: body.dayofweek,
+        channel: body.channel,
         dailyStartTime: body.dailyStartTime,
         dailyEndTime: body.dailyEndTime,
       })
@@ -53,7 +55,7 @@ export async function PATCH(req: Request, context: contextProps) {
   } catch (error) {
     return NextResponse.json(
       { message: "could not update post" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

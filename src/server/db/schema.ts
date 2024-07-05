@@ -1,6 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
+import { channel } from "diagnostics_channel";
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -52,6 +53,7 @@ export const records = createTable(
     dayofweek: varchar("dayofweek", { length: 256 }).notNull(),
     dailyStartTime: time("dailyStartTime", { fsp: 6 }).notNull(),
     dailyEndTime: time("dailyEndTime", { fsp: 6 }).notNull(),
+    channel: varchar("channel", { length: 256 }).notNull(),
     userId: varchar("userId", { length: 256 }).notNull(),
     username: varchar("name", { length: 256 }).notNull(),
     createdAt: timestamp("created_at")
