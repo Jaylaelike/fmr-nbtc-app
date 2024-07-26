@@ -5,31 +5,35 @@
 import { useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import axios from "axios";
-import ChartFrequency from "~/components/chart/ChartFrequency";
-import TableFrequncy from "~/components/table/TableFrequncy";
+
+import TableFrequncy from "~/component/table/TableFrequncy";
 
 // import { Video } from "lucide-react";
 // import { PiRecordFill } from "react-icons/pi";
 
 import { AnimatedCounter } from "react-animated-counter";
-import Minimaps from "~/components/minimaps/Minimaps";
+import Minimaps from "~/component/minimaps/Minimaps";
 import { debounce } from "lodash";
 
-import ChartFrequencyAnt from "~/components/chart/ChartFrequencyAnt";
+import ChartFrequencyAnt from "~/component/chart/ChartFrequencyAnt";
 import { useForm, SubmitHandler } from "react-hook-form";
 
 import { useMutation } from "@tanstack/react-query";
 import { CreateRecord } from "~/server/data";
 import { useRouter } from "next/navigation";
 
-import AlertDialogDelButton from "~/components/dialog/alertDialogDelButton";
+import AlertDialogDelButton from "~/component/dialog/alertDialogDelButton";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
-import { LoaderPinwheelIcon, Tv } from "lucide-react";
-import loading from "~/app/loading";
+import { Tv, DownloadIcon } from "lucide-react";
+
 import Loading from "~/app/loading";
+import TableAudioRecord from "~/component/table/TableAudioRecord";
+import isBetween from "dayjs/plugin/isBetween";
+
+dayjs.extend(isBetween);
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -37,6 +41,58 @@ dayjs.extend(timezone);
 interface MapsId {
   params: {
     id: number;
+  };
+}
+
+// this data HistoryRecord
+// [
+//   {
+//   id: 11,
+//   recordId: "0190e3d2-d12d-7f2f-adb7-ec93e1a177fe",
+//   urls: "https://tisxquhwharbxlrwzycc.supabase.co/storage/v1/object/public/songs/FM1/Wed_Jul_24_2024_15:21.wav",
+//   createdAt: "2024-07-24T15:19:22.000Z",
+//   updatedAt: null,
+//   record: {
+//   id: 10,
+//   recordIds: "0190e3d2-d12d-7f2f-adb7-ec93e1a177fe",
+//   stationId: 61,
+//   ipAddress: "101.101.34.56",
+//   startTime: "2024-07-24T15:18:00.000Z",
+//   endTime: "2024-07-24T15:21:00.000Z",
+//   frequncy: "101.55",
+//   dayofweek: "3",
+//   dailyStartTime: "15:18:00.000000",
+//   dailyEndTime: "15:21:00.000000",
+//   channel: "FM 1",
+//   userId: "user_2j93p6BFv3bnGGBX2n9QAqBBCrp",
+//   username: "สิทธิชัย มากวิสัย",
+//   createdAt: "2024-07-24T15:19:22.000Z",
+//   updatedAt: null
+//   }
+//   },
+// ]
+interface HistoryRecord {
+  id: number;
+  recordId: string;
+  urls: string;
+  createdAt: string;
+  updatedAt: string;
+  record: {
+    id: number;
+    recordIds: string;
+    stationId: number;
+    ipAddress: string;
+    startTime: string;
+    endTime: string;
+    frequncy: string;
+    dayofweek: string;
+    dailyStartTime: string;
+    dailyEndTime: string;
+    channel: string;
+    userId: string;
+    username: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
@@ -81,7 +137,7 @@ function ModalTags({ params: { id } }: MapsId) {
   const [dataStation, setDataStation] = useState([] as StationList[]);
 
   //create state of button distance scan
-  const [distance, setDistance] = useState(10);
+  const [distance, setDistance] = useState(20);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,8 +155,8 @@ function ModalTags({ params: { id } }: MapsId) {
   const latitudeData = dataStation.map((item) => item.Latitude.toString());
   const longitudeData = dataStation.map((item) => item.Longitude.toString());
 
-  console.log(latitudeData[0]);
-  console.log(longitudeData[0]);
+  // console.log(latitudeData[0]);
+  // console.log(longitudeData[0]);
 
   //state for FM  devices
   // const [fmdevices, setFmDevices] = useState("FM 1");
@@ -187,36 +243,42 @@ function ModalTags({ params: { id } }: MapsId) {
   // );
   // console.log(frequencyNewData);
 
-  const [stationsData, chartData, recordsData] = useQueries({
-    queries: [
-      {
-        queryKey: [latitudeData[0], longitudeData[0], distance, id],
-        queryFn: (): Promise<StationList> =>
-          axios.get(
-            `http://localhost:4000/api/station/${latitudeData[0]}/${longitudeData[0]}/${distance}`,
-          ),
-      },
-      {
-        queryKey: ["scanner"],
-        queryFn: (): Promise<FrequencyScaner> =>
-          axios.get("http://localhost:4000/api/scanner"),
-      },
-      {
-        queryKey: ["records", id],
-        // refetchInterval: 3000,
-        queryFn: (): Promise<RecordType> =>
-          axios.get(`http://localhost:3000/api/records/filter/${id}`),
-      },
-    ],
-  });
+  const [stationsData, chartData, recordsData, filterHistoryRecordEvent] =
+    useQueries({
+      queries: [
+        {
+          queryKey: [latitudeData[0], longitudeData[0], distance, id],
+          queryFn: (): Promise<StationList> =>
+            axios.get(
+              `http://localhost:4000/api/station/${latitudeData[0]}/${longitudeData[0]}/${distance}`,
+            ),
+        },
+        {
+          queryKey: ["scanner"],
+          queryFn: (): Promise<FrequencyScaner> =>
+            axios.get("http://localhost:4000/api/scanner"),
+        },
+        {
+          queryKey: ["records", id],
+          // refetchInterval: 3000,
+          queryFn: (): Promise<RecordType> =>
+            axios.get(`http://localhost:3000/api/records/filter/${id}`),
+        },
+        {
+          queryKey: ["data", id],
+          queryFn: (): Promise<RecordType> =>
+            axios.get(`http://localhost:3000/api/audiopath`),
+        },
+      ],
+    });
 
   // console.log(stationsData);
   // console.log(chartData);
 
   const isFetchingStationsData = stationsData.isFetching;
-  const isFetchingChartData = chartData.isFetching;
+  // const isFetchingChartData = chartData.isFetching;
 
-  const frequencyData: number[] = chartData?.data?.data.map(
+  const frequencyData: number[] = chartData?.data?.data?.map(
     (item: FrequencyScaner) => item.Data,
   );
   //   console.log(frequencyData);
@@ -234,6 +296,15 @@ function ModalTags({ params: { id } }: MapsId) {
 
   console.log(frequencyNewData);
 
+  //find `filterHistoryRecordEvent` find the item.record.stationId === id
+
+  const filterHistoryRecordEventStationId =
+    filterHistoryRecordEvent.data?.data.filter(
+      (item: HistoryRecord) => item.record.stationId == id,
+    );
+
+  // console.log(filterHistoryRecordEventStationId);
+
   // filter only  frequencyNewData[1] !=0  form frequencyNewData
 
   const frequencyNewDataFilter = frequencyNewData?.map((item) => {
@@ -243,7 +314,7 @@ function ModalTags({ params: { id } }: MapsId) {
     ];
   });
 
-  console.log(frequencyNewDataFilter);
+  // console.log(frequencyNewDataFilter);
 
   const debouncedSetDistance = debounce((value: number) => {
     setDistance(value);
@@ -313,10 +384,19 @@ function ModalTags({ params: { id } }: MapsId) {
     }
   };
 
+  //create state reload <tbody> only  every 10 sec for update status record
+  const [reload, setReload] = useState(false);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setReload(!reload);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [reload]);
+
   return (
     <main className="flex-col items-center justify-center p-10 pt-20">
       <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
-        <div className="row-span-3 w-full space-y-2 rounded-xl bg-fuchsia-900 p-4">
+        <div className="row-span-3 w-full space-y-2 rounded-xl bg-red-400 p-4">
           <h2 className="card-title text-3xl text-white">Distance Scan</h2>
 
           <div className="grid grid-cols-1 justify-items-center gap-4">
@@ -350,7 +430,7 @@ function ModalTags({ params: { id } }: MapsId) {
               type="number"
               placeholder="ระยะทาง (KM)"
               className="input input-bordered  w-full max-w-xs 
-            bg-fuchsia-400 text-3xl"
+            bg-red-400 text-3xl"
               value={distance}
               onChange={(e) => debouncedSetDistance(parseInt(e.target.value))}
               max={50}
@@ -369,11 +449,11 @@ function ModalTags({ params: { id } }: MapsId) {
             </div>
           </div>
         </div>
-        <div className="col-span-2 w-full rounded-xl bg-fuchsia-800 p-4 text-3xl text-white">
+        <div className="col-span-2 w-full rounded-xl bg-red-400 p-4 text-3xl text-white">
           สถานี : {dataStation.map((item) => item.Station_Name)}
         </div>
 
-        <div className="col-span-2 row-span-2 w-full rounded-xl bg-fuchsia-700 p-4 text-3xl text-white">
+        <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4 text-3xl text-white">
           <Minimaps id={id} />
         </div>
 
@@ -383,7 +463,7 @@ function ModalTags({ params: { id } }: MapsId) {
             </div> */}
       </div>
 
-      <section className="rounded-lg bg-red-400 p-4 text-white">
+      <section className="grid justify-items-center rounded-lg bg-red-400 p-4 text-white  md:grid-cols-3">
         <h2 className="text-2xl font-bold">FM Devices : {selectedFmDevice}</h2>
 
         <div className="mt-4 flex flex-wrap justify-items-center gap-4">
@@ -400,20 +480,65 @@ function ModalTags({ params: { id } }: MapsId) {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 p-4 md:grid-cols-3">
+      <section className="grid grid-cols-1 space-y-3 p-4 md:grid-cols-3">
         <div className="col-span-3 rounded-lg bg-red-400 p-4 text-white">
           <h2 className="text-2xl font-bold">Frequency Chart</h2>
 
           <ChartFrequencyAnt />
         </div>
+
+        <div className="col-span-3 row-span-3 w-full rounded-xl bg-red-400 ">
+          <div className="row-span-3 w-full  p-4 text-3xl text-white">
+            Frequency Table
+          </div>
+
+          {/* <div className="w-full">
+            <ChartFrequency />
+          </div> */}
+
+          <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
+            <TableFrequncy
+              stations={stationsData}
+              loading={isFetchingStationsData}
+              frequencyNewDataFilter={frequencyNewDataFilter}
+              tunerStateChanel={selectedFmDevice.slice(-1)}
+            />
+          </div>
+
+          {/* <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
+            &nbsp;
+          </div> */}
+        </div>
+
+        {/* <div className="col-span-2 w-full rounded-xl bg-red-400 p-4">
+          <div className="grid grid-cols-2 gap-2 px-4 py-4 xl:grid-cols-5">
+            {isFetchingChartData ? (
+              <span className="loading loading-spinner loading-lg size-40"></span>
+            ) : (
+              stationsData.data?.data.map((item: StationList) => (
+                <div key={item.Station_ID} className="button">
+                  <button className="btn btn-primary">
+                    {item.Transmitter_Name}
+                    <br />
+                    {item.Frequency} MHz
+                  </button>
+                </div>
+              )) || <div>No Station of distance</div>
+            )}
+          </div>
+
+          <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
+            &nbsp;
+          </div>
+        </div> */}
       </section>
-  
+
       {isPending ? (
         <Loading />
       ) : (
-        <section className="grid  gap-4 md:grid-cols-3 ">
-          <div className="rounded-lg bg-red-300 p-4 text-white ">
-            <h2 className="text-2xl font-bold">Record</h2>
+        <section className="grid  gap-4 p-4 md:grid-cols-3">
+          <div className="rounded-lg bg-red-400 p-4 text-white ">
+            <h2 className="text-2xl font-bold">Recording Setup</h2>
 
             <form
               onSubmit={handleSubmit(handleCreatRecords)}
@@ -513,12 +638,11 @@ function ModalTags({ params: { id } }: MapsId) {
                 Submit
               </button>
             </form>
-
           </div>
 
           <div className="col-span-2 w-full rounded-lg bg-red-400 p-4 text-white">
             <div className="row-span-3 w-full  p-4 text-3xl text-white">
-              Table of Records
+              FM Configurations
             </div>
 
             <div className="overflow-x-auto">
@@ -527,6 +651,7 @@ function ModalTags({ params: { id } }: MapsId) {
                 <thead>
                   <tr>
                     <th>ID</th>
+                    <th>Status</th>
                     <th>Station ID</th>
                     <th>IP Address</th>
                     <th>Channel</th>
@@ -540,6 +665,8 @@ function ModalTags({ params: { id } }: MapsId) {
                     <th>User Name</th>
                   </tr>
                 </thead>
+
+                {/* body */}
                 <tbody>
                   {recordsData.data?.data
                     .filter(
@@ -547,44 +674,111 @@ function ModalTags({ params: { id } }: MapsId) {
                         selectedFmDevice === "" ||
                         item.channel === selectedFmDevice,
                     )
-                    .map((item: RecordType) => (
-                      <tr key={item.id}>
-                        <td>{item.id}</td>
-                        <td>{item.stationId}</td>
-                        <td>{item.ipAddress}</td>
-                        <td>{item.channel}</td>
-                        <td>
-                          {dayjs(item.startTime)
-                            .tz("Asia/Bangkok")
-                            .format("DD-MM-YYYY HH:mm:ss")}
-                        </td>
-                        <td>
-                          {dayjs(item.endTime)
-                            .tz("Asia/Bangkok")
-                            .format("DD-MM-YYYY HH:mm:ss")}
-                        </td>
-                        <td>{getDayofweek(item.dayofweek.toString())}</td>
-                        <td>{item.dailyStartTime?.slice(0, -7)}</td>
-                        <td>{item.dailyEndTime?.slice(0, -7)}</td>
-                        <td>{item.frequncy}</td>
-                        <td>{item.username}</td>
-                        <td>
+                    .map((item: RecordType) => {
+                      // Convert item start and end times to Date objects
+                      const startTime = dayjs(item.startTime).subtract(
+                        7,
+                        "hour",
+                      );
+                      const endTime = dayjs(item.endTime).subtract(7, "hour");
+                      // Get current time
+                      const now = dayjs();
+                      // Determine if now is within the start and end times in 10 sec intervals
+
+                      const isActive =
+                        now.isAfter(startTime) && now.isBefore(endTime);
+
+                      // Determine if now is before the start time
+                      const isBefore = now.isBefore(startTime);
+
+                      return (
+                        <tr key={item.id}>
+                          <td>{item.id}</td>
+                          <td>
+                            {(reload && (
+                              <>
+                                {isActive ? (
+                                  <div className="badge badge-warning">
+                                    Pending
+                                  </div>
+                                ) : isBefore ? (
+                                  <div className="badge badge-ghost text-nowrap">
+                                    No Active
+                                  </div> // Changed badge for "No Active" state
+                                ) : (
+                                  <div className="badge badge-success">
+                                    Success
+                                  </div>
+                                )}
+                              </>
+                            )) || (
+                              <>
+                                <span className="loading loading-spinner loading-md size-full"></span>
+                              </>
+                            )}
+                          </td>
+                          <td>{item.stationId}</td>
+                          <td>{item.ipAddress}</td>
+                          <td>{item.channel}</td>
+                          <td>{startTime.format("DD-MM-YYYY HH:mm:ss")}</td>
+                          <td>{endTime.format("DD-MM-YYYY HH:mm:ss")}</td>
+                          <td>{getDayofweek(item.dayofweek.toString())}</td>
+                          <td>{item.dailyStartTime?.slice(0, -7)}</td>
+                          <td>{item.dailyEndTime?.slice(0, -7)}</td>
+                          <td>{item.frequncy}</td>
+                          <td>{item.username}</td>
                           <td>
                             <AlertDialogDelButton
                               alertId={item.id}
                               stationIds={id}
                             />
+                            <button
+                              className="btn-danger btn"
+                              onClick={() => router.push(`/edit/${item.id}`)}
+                            >
+                              แก้ไข
+                            </button>
                           </td>
+                        </tr>
+                      );
+                    })}
+                  {/* //   <tr key={item.id}>
+                    //     <td>{item.id}</td>
+                    //     <td>{item.stationId}</td>
+                    //     <td>{item.ipAddress}</td>
+                    //     <td>{item.channel}</td>
+                    //     <td>
+                    //       {dayjs(item.startTime)
+                    //         .subtract(7, "hour")
+                    //         .format("DD-MM-YYYY HH:mm:ss")}
+                    //     </td>
+                    //     <td>
+                    //       {dayjs(item.endTime)
+                    //         .subtract(7, "hour")
+                    //         .format("DD-MM-YYYY HH:mm:ss")}
+                    //     </td>
+                    //     <td>{getDayofweek(item.dayofweek.toString())}</td>
+                    //     <td>{item.dailyStartTime?.slice(0, -7)}</td>
+                    //     <td>{item.dailyEndTime?.slice(0, -7)}</td>
+                    //     <td>{item.frequncy}</td>
+                    //     <td>{item.username}</td>
+                    //     <td>
+                    //       <td>
+                    //         <AlertDialogDelButton
+                    //           alertId={item.id}
+                    //           stationIds={id}
+                    //         />
+                    //       </td>
 
-                          <button
-                            className="btn-danger btn"
-                            onClick={() => router.push(`/edit/${item.id}`)}
-                          >
-                            แก้ไข
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    //       <button
+                    //         className="btn-danger btn"
+                    //         onClick={() => router.push(`/edit/${item.id}`)}
+                    //       >
+                    //         แก้ไข
+                    //       </button>
+                    //     </td>
+                    //   </tr>
+                    // ))} */}
                 </tbody>
               </table>
             </div>
@@ -592,51 +786,75 @@ function ModalTags({ params: { id } }: MapsId) {
         </section>
       )}
 
-      <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
-        <div className="col-span-2 w-full rounded-xl bg-red-400 p-4">
+      <section className="grid grid-cols-1 space-y-3 p-4 md:grid-cols-3">
+        <div className="col-span-3 row-span-3 w-full rounded-xl bg-red-400 ">
           <div className="row-span-3 w-full  p-4 text-3xl text-white">
-            Frequency Chart
-          </div>
-
-          <div className="w-full">
-            <ChartFrequency />
+            Event Record
           </div>
 
           <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
-            <TableFrequncy
-              stations={stationsData}
-              loading={isFetchingStationsData}
-              frequencyNewDataFilter={frequencyNewDataFilter}
-            />
-          </div>
+            <div className="overflow-x-auto">
+              <table className="table">
+                {/* head */}
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>id</th>
+                    <th>audioUrl</th>
+                    <th>dailyStartTime</th>
+                    <th>dailyEndTime</th>
+                    <th>Downloads</th>
+                  </tr>
+                </thead>
 
-          <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
-            &nbsp;
+                <tbody>
+                  {filterHistoryRecordEventStationId?.map(
+                    (item: RecordType) => {
+                      return (
+                        <tr key={item.id}>
+                          <td>{item.id}</td>
+                          <td>
+                            <TableAudioRecord urls={item.urls} />
+                          </td>
+
+                          <td>{item.record.dailyStartTime}</td>
+                          <td>{item.record.dailyEndTime}</td>
+                          <td>
+                            <button className="btn btn-warning">
+                              <DownloadIcon
+                                onClick={() => {
+                                  ///download audio file blob form url
+
+                                  void fetch(item.urls)
+                                    .then((response) => response.blob())
+                                    .then((blob) => {
+                                      const url = window.URL.createObjectURL(
+                                        new Blob([blob]),
+                                      );
+                                      const link = document.createElement("a");
+                                      link.href = url;
+                                      link.setAttribute(
+                                        "download",
+                                        "audio.wav",
+                                      );
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      link.parentNode?.removeChild(link);
+                                    });
+                                }}
+                              />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    },
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-
-        <div className="col-span-2 w-full rounded-xl bg-red-400 p-4">
-          <div className="grid grid-cols-2 gap-2 px-4 py-4 xl:grid-cols-5">
-            {isFetchingChartData ? (
-              <span className="loading loading-spinner loading-lg size-40"></span>
-            ) : (
-              stationsData.data?.data.map((item: StationList) => (
-                <div key={item.Station_ID} className="button">
-                  <button className="btn btn-primary">
-                    {item.Transmitter_Name}
-                    <br />
-                    {item.Frequency} MHz
-                  </button>
-                </div>
-              )) || <div>No Station of distance</div>
-            )}
-          </div>
-
-          <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
-            &nbsp;
-          </div>
-        </div>
-      </div>
+      </section>
     </main>
   );
 }

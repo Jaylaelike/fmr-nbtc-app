@@ -49,15 +49,25 @@ function AlertDialogDelButton(props: { alertId: number; stationIds: number }) {
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <DialogPanel className="data-[closed]:transform-[scale(95%)] w-full max-w-md rounded-xl bg-white/10 p-6 backdrop-blur-2xl duration-300 ease-out data-[closed]:opacity-0">
+             <DialogTitle
+          
+             >
+                <img
+            src="http://fmr.nbtc.go.th/fmr/_inc/img/logo@2x.png"
+            alt=""
+            className="h-12 w-12 rounded-md"
+          />
+
+             </DialogTitle>
               <DialogTitle
                 as="h3"
                 className="text-base/7 font-medium text-black/80"
               >
-                Are you sure you want to delete Record ID {props.alertId}?
+                คุณต้องการจะลบข้อมูลการบันทึก ID {props.alertId}?
               </DialogTitle>
+
               <p className="mt-2 text-sm/6 text-black/80">
-                Your payment has been successfully submitted. We’ve sent you an
-                email with all of the details of your order.
+              ถ้าคุณลบข้อมูลการบันทึก ทั้งหมดที่เกี่ยวข้องจะถูกลบออกจากระบบ !!!
               </p>
               <div className="mt-4 gap-3 space-x-4">
                 <Button

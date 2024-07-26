@@ -1,8 +1,7 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { channel } from "diagnostics_channel";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   bigint,
   datetime,
@@ -13,6 +12,9 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 
+
+
+
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -20,8 +22,10 @@ import {
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 export const createTable = mysqlTableCreator(
-  (name) => `fmr-master-user_${name}`,
+  (name) => `fmr_master_user_${name}`,
 );
+
+
 
 export const users = createTable(
   "user",
@@ -45,6 +49,7 @@ export const records = createTable(
   "record",
   {
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    recordIds: varchar("recordsId", { length: 256 }).notNull(),
     stationId: bigint("stationId", { mode: "number" }).notNull(),
     ipAddress: varchar("ipAddress", { length: 256 }),
     startTime: datetime("startTime", { mode: "date", fsp: 6 }).notNull(),
@@ -67,3 +72,35 @@ export const records = createTable(
     userIdIndex: index("user_id_idx").on(example.userId),
   }),
 );
+
+//create table for audio output path
+export const audioPaths = createTable(
+  "audio",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    recordId: varchar("recordId", { length: 256 }).notNull(),
+    urls: varchar("path", { length: 512 }).notNull(),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updatedAt").onUpdateNow(),
+  },
+  (example) => ({
+    recordIdIndex: index("record_id_idx").on(example.id),
+  }),
+);
+
+export const recordRelations = relations(records, ({ many }) => ({
+  audioPaths: many(audioPaths, {
+    fields: [records.recordIds],
+    references: [audioPaths.recordId],
+  }),
+}));
+
+//relation with `record` id table one to many relation , One record can have multiple audioPaths
+export const audioRelation = relations(audioPaths, ({ one }) => ({
+  record: one(records, {
+    fields: [audioPaths.recordId],
+    references: [records.recordIds],
+  }),
+}));

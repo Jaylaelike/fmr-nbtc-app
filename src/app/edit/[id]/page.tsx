@@ -91,19 +91,6 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
     return localTime;
   };
 
-  // // Utility function to format datetime strings to "YYYY-MM-DDTHH:mm" format
-  // const formatDateTimeLocal = (dateTimeString) => {
-  //   const date = new Date(dateTimeString);
-  //   // Format to "YYYY-MM-DDTHH:mm" or "YYYY-MM-DDTHH:mm:ss" as needed
-  //   return date.toISOString().slice(0, 16);
-  //   // if (!isoString) return "";
-  //   // // Create a new Date object using the ISO string
-  //   // const date = new Date(isoString);
-  //   // // Convert to local date-time format (YYYY-MM-DDTHH:mm)
-  //   // // This format is compatible with datetime-local input
-  //   // const localDateTime = date.toISOString().slice(0, 16);
-  //   // return localDateTime;
-  // };
 
   if (isLoadingPost) {
     return <span className="loading loading-lg"></span>;
@@ -156,7 +143,7 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
               {...register("startTime", { required: true })}
               type="datetime-local"
               placeholder="Start DateTime"
-              defaultValue={dayjs(dataPost[0]?.startTime).format(
+              defaultValue={dayjs(dataPost[0]?.startTime).subtract(7, 'hour').format(
                 "YYYY-MM-DDTHH:mm",
               )}
               className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
@@ -166,7 +153,7 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
               {...register("endTime", { required: true })}
               type="datetime-local"
               placeholder="End DateTime"
-              defaultValue={dayjs(dataPost[0]?.endTime).format(
+              defaultValue={dayjs(dataPost[0]?.endTime).subtract(7, 'hour').format(
                 "YYYY-MM-DDTHH:mm",
               )}
               className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"

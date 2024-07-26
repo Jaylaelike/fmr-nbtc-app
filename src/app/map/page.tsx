@@ -18,10 +18,13 @@ import "leaflet-geosearch/assets/css/leaflet.css";
 import L, { type LatLngLiteral } from "leaflet";
 
 import "../types";
-import ModalTags from "~/components/modal";
+import ModalTags from "~/component/modal";
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+
+
+//dynamic import leaflet to fix server side rendering
 
 function ChangeView({ center, zoom }) {
   const map = useMap();
@@ -34,11 +37,13 @@ function CurrentLocationMarker() {
   const map = useMap();
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
       setPosition([latitude, longitude]);
       map.flyTo([latitude, longitude], 13); // Focus the map on the current location
     });
+  }
   }, [map]);
 
   useEffect(() => {
@@ -58,7 +63,14 @@ function CurrentLocationMarker() {
       console.error("Geolocation error:", error);
     };
 
-    navigator.geolocation.getCurrentPosition(success, error);
+
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(success , error);
+    }
+
+    
+
+    // navigator.geolocation.getCurrentPosition(success);
   }, [map]); // Dependency array includes map to ensure effect runs when map is available
 
   return position === null ? null : (
@@ -76,6 +88,10 @@ function CurrentLocationMarker() {
     </Marker>
   );
 }
+
+
+
+
 
 //create search bar marker
 function SearchBar() {
@@ -105,6 +121,7 @@ function SearchBar() {
         }),
       },
     });
+
 
     map.addControl(searchControl);
     return () => map.removeControl(searchControl);
@@ -307,6 +324,7 @@ export default function Page() {
           )}
 
           <CurrentLocationMarker />
+        
 
           <SearchBar />
         </MapContainer>
@@ -321,7 +339,7 @@ export default function Page() {
       </div>
 
       {/* Drawer */}
-      <div className="fixed  bottom-10 z-40 p-5">
+      <div className="fixed bottom-10 z-30 p-5">
         <div className="drawer drawer-end">
           <input id="my-drawer" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content">

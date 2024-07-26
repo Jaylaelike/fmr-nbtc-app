@@ -5,7 +5,7 @@ import { db } from "../server/db";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { users } from "../server/db/schema";
 import { redirect } from "next/navigation";
-import CardHoverPage from "~/components/card-hover-page";
+import CardHoverPage from "~/component/card-hover-page";
 
 export default async function HomePage() {
 

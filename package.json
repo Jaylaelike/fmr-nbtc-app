@@ -31,6 +31,8 @@
     "@vidstack/react": "^1.11.21",
     "apexcharts": "^3.49.1",
     "axios": "^1.7.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "dayjs": "^1.11.11",
     "drizzle-orm": "^0.29.5",
     "framer-motion": "^11.2.10",
@@ -54,7 +56,11 @@
     "react-modern-audio-player": "1.4.0-rc.2",
     "react-player": "^2.16.0",
     "react-slide-rule-fork": "^1.0.5",
+    "recharts": "^2.12.7",
     "server-only": "^0.0.1",
+    "tailwind-merge": "^2.4.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuidv7": "^1.0.1",
     "zod": "3.22.4"
   },
   "devDependencies": {
