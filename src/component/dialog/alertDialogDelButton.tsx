@@ -3,6 +3,7 @@ import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { Trash2 } from 'lucide-react';
 
 function AlertDialogDelButton(props: { alertId: number; stationIds: number }) {
   const router = useRouter();
@@ -37,7 +38,7 @@ function AlertDialogDelButton(props: { alertId: number; stationIds: number }) {
         onClick={open}
         className="rounded-md bg-black/20 px-4 py-2 text-sm font-medium text-white focus:outline-none data-[hover]:bg-black/30 data-[focus]:outline-1 data-[focus]:outline-white"
       >
-        Delete Id {props.alertId}
+        <Trash2 className="w-6 h-6 ml-2" />
       </Button>
       <Dialog
         open={isOpen}

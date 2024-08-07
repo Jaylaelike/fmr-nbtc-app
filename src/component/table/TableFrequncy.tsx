@@ -220,7 +220,7 @@ function TableFrequncy({
 
   //create websocket connection for audio stream
   useEffect(() => {
-    const socketURL = "ws://172.16.116.32:3000" + "/" + tunerChange;
+    const socketURL = process.env.NEXT_PUBLIC_WS_URL + tunerChange;
     const player = new PCMPlayer({
       encoding: "16bitInt",
       channels: 1,
@@ -264,7 +264,7 @@ function TableFrequncy({
   //Control FM Frequency to devices websocket
   const [inputDateControl, setInputDataControl] = useState(null);
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
 
     //send value to websocket
     ws.onopen = () => {
@@ -288,7 +288,7 @@ function TableFrequncy({
   //  setIsOn and send "611" == on ,"610" === off by lenght of messages position 1 is tunerStateChanel example "6" + tunerStateChanel + "1" === on and "6" + tunerStateChanel + "0" === off
 
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
 
     //send value to websocket
     ws.onopen = () => {

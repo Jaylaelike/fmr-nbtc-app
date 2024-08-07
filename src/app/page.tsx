@@ -5,7 +5,8 @@ import { db } from "../server/db";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { users } from "../server/db/schema";
 import { redirect } from "next/navigation";
-import CardHoverPage from "~/component/card-hover-page";
+
+import HomePages from "~/component/home";
 
 export default async function HomePage() {
 
@@ -55,7 +56,7 @@ export default async function HomePage() {
             </h1>
           </div> */}
 
-          <CardHoverPage />
+          <HomePages />
         </SignedIn>
       </main>
     );

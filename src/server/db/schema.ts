@@ -13,8 +13,6 @@ import {
 } from "drizzle-orm/mysql-core";
 
 
-
-
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -24,8 +22,6 @@ import {
 export const createTable = mysqlTableCreator(
   (name) => `fmr_master_user_${name}`,
 );
-
-
 
 export const users = createTable(
   "user",
@@ -59,6 +55,7 @@ export const records = createTable(
     dailyStartTime: time("dailyStartTime", { fsp: 6 }).notNull(),
     dailyEndTime: time("dailyEndTime", { fsp: 6 }).notNull(),
     channel: varchar("channel", { length: 256 }).notNull(),
+    bitrates: varchar("bitrates", { length: 256 }).notNull(),
     userId: varchar("userId", { length: 256 }).notNull(),
     username: varchar("name", { length: 256 }).notNull(),
     createdAt: timestamp("created_at")
@@ -79,11 +76,39 @@ export const audioPaths = createTable(
   {
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
     recordId: varchar("recordId", { length: 256 }).notNull(),
-    urls: varchar("path", { length: 512 }).notNull(),
+    urls: varchar("urls", { length: 512 }).notNull(),
+    stationIds: bigint("stationIds", { mode: "number" }).notNull(),
+    frequencies: varchar("frequencies", { length: 256 }).notNull(),
+    startTime: datetime("startTime", { mode: "date", fsp: 6 }).notNull(),
+    endTime: datetime("endTime", { mode: "date", fsp: 6 }).notNull(),
     createdAt: timestamp("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updatedAt").onUpdateNow(),
+  },
+  (example) => ({
+    recordIdIndex: index("record_id_idx").on(example.id),
+  }),
+);
+
+//create table for audio output path update by remotesite
+export const audioPathsRemotes = createTable(
+  "audio_record",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    recordsId: varchar("recordsId", { length: 256 }).notNull(),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    ip: varchar("ip", { length: 256 }).notNull(),
+    StationID: bigint("StationID", { mode: "number" }).notNull(),
+    bitrate: varchar("bitrate", { length: 256 }).notNull(),
+    urls: varchar("urls", { length: 512 }).notNull(),
+    frequencies: varchar("frequencies", { length: 256 }).notNull(),
+    Chanel: varchar("Chanel", { length: 256 }).notNull(),
+    startTime: datetime("startTime", { mode: "date", fsp: 6 }).notNull(),
+    endTime: datetime("endTime", { mode: "date", fsp: 6 }).notNull(),
   },
   (example) => ({
     recordIdIndex: index("record_id_idx").on(example.id),

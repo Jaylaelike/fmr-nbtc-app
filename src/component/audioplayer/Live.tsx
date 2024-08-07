@@ -75,7 +75,7 @@ const Live = ({ closeStatus, sourceStatus, aftertune }: Propstype) => {
 
 
   useEffect(() => {
-    const socketURL = "ws://172.16.116.32:3000" + "/" + sourceStatus;
+    const socketURL = process.env.NEXT_PUBLIC_WS_URL + sourceStatus;
     const player = new PCMPlayer({
       encoding: '16bitInt',
       channels: 1,

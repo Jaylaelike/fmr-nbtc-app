@@ -1,0 +1,1 @@
+ALTER TABLE `fmr_master_user_record` DROP COLUMN `status`;

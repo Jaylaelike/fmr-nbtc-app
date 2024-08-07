@@ -80,8 +80,7 @@
 
 // export default config
 
-
-// original no shadcdn 
+// original no shadcdn
 // import { type Config } from "tailwindcss";
 // import { fontFamily } from "tailwindcss/defaultTheme";
 // import colors from 'tailwindcss/colors';
@@ -256,6 +255,7 @@ export default {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./node_modules/react-tailwindcss-datepicker/dist/index.esm.js",
   ],
   prefix: "",
   theme: {
@@ -380,35 +380,48 @@ export default {
           "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
         "dark-tremor-dropdown":
           "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+
+        glow: "0 0 20px rgba(255, 204, 112, 0.7), 0 0 40px rgba(200, 80, 192, 0.5), 0 0 60px rgba(65, 88, 208, 0.3)",
+        glow2:
+          "0 0 20px rgba(50, 255, 50, 0.7), 0 0 40px rgba(20, 200, 20, 0.5), 0 0 60px rgba(5, 150, 5, 0.3)",
       },
-      borderRadius: {
-        "tremor-small": "0.375rem",
-        "tremor-default": "0.5rem",
-        "tremor-full": "9999px",
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+    },
+    borderRadius: {
+      "tremor-small": "0.375rem",
+      "tremor-default": "0.5rem",
+      "tremor-full": "9999px",
+      lg: "var(--radius)",
+      md: "calc(var(--radius) - 2px)",
+      sm: "calc(var(--radius) - 4px)",
+      xl: "calc(var(--radius) - 4px)",
+    },
+    fontSize: {
+      "tremor-label": ["0.75rem", { lineHeight: "1rem" }],
+      "tremor-default": ["0.875rem", { lineHeight: "1.25rem" }],
+      "tremor-title": ["1.125rem", { lineHeight: "1.75rem" }],
+      "tremor-metric": ["1.875rem", { lineHeight: "2.25rem" }],
+    },
+    keyframes: {
+      "accordion-down": {
+        from: { height: "0" },
+        to: { height: "var(--radix-accordion-content-height)" },
       },
-      fontSize: {
-        "tremor-label": ["0.75rem", { lineHeight: "1rem" }],
-        "tremor-default": ["0.875rem", { lineHeight: "1.25rem" }],
-        "tremor-title": ["1.125rem", { lineHeight: "1.75rem" }],
-        "tremor-metric": ["1.875rem", { lineHeight: "2.25rem" }],
+      "accordion-up": {
+        from: { height: "var(--radix-accordion-content-height)" },
+        to: { height: "0" },
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
+    },
+    animation: {
+      "accordion-down": "accordion-down 0.2s ease-out",
+      "accordion-up": "accordion-up 0.2s ease-out",
+    },
+
+    filter: {
+      "blur-20": "blur(20px)",
+      "blur-25": "blur(25px)",
+    },
+    brightness: {
+      150: "1.5",
     },
   },
   safelist: [

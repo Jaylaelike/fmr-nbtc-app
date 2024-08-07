@@ -1,8 +1,8 @@
-
 export const projects = [
   {
     title: "INFORMATION",
-    description: "A streaming service that offers a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.",
+    description:
+      "A streaming service that offers a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.",
     link: "/player",
   },
   {
@@ -93,8 +93,19 @@ export type CreateRecord = {
   dayofweek: string;
   dailyStartTime: DatetimeFsp;
   dailyEndTime: DatetimeFsp;
+  bitrates: string;
   frequncy: string;
   channel: string;
   userId: string;
   username: string;
+};
+
+export type Users = {
+  id: number;
+  userId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  role: string;
+  email: string;
 };

@@ -1,10 +1,10 @@
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { records } from "~/server/db/schema";
+import { audioPaths, records } from "~/server/db/schema";
 import { db } from "~/server/db";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { CreateRecord } from "~/server/data";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 interface contextProps {
   params: {
@@ -15,7 +15,7 @@ interface contextProps {
 // Separate function for establishing a WebSocket connection
 async function establishWebSocketConnection() {
   try {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Record");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Record");
 
     ws.on("open", function open() {
       ws.send("record");
@@ -62,6 +62,10 @@ export async function PATCH(req: Request, context: contextProps) {
 
     const body: CreateRecord = await req.json();
 
+    const user = auth();
+    if (!user.userId) throw new Error("Not authenticated");
+    const currentUsers = await currentUser();
+
     await db
       .update(records)
       .set({
@@ -69,17 +73,24 @@ export async function PATCH(req: Request, context: contextProps) {
         ipAddress: body.ipAddress,
         startTime: new Date(
           new Date(body.startTime).getTime() + 7 * 60 * 60 * 1000,
+          //  body.startTime
         ),
         endTime: new Date(
           new Date(body.endTime).getTime() + 7 * 60 * 60 * 1000,
+          // body.endTime
         ),
         frequncy: body.frequncy,
         dayofweek: body.dayofweek,
         channel: body.channel,
+        bitrates: body.bitrates,
         dailyStartTime: body.dailyStartTime,
         dailyEndTime: body.dailyEndTime,
+        username: currentUsers?.fullName ?? currentUsers?.username ?? "",
       })
       .where(eq(records.id, params.recordsId));
+
+
+ 
 
     await establishWebSocketConnection();
 
@@ -111,10 +122,9 @@ export async function GET(req: Request, context: contextProps) {
     const { params } = context;
     const post = await db.query.records.findMany({
       where: eq(records.id, params.recordsId),
-      with: { 
+      with: {
         audioPaths: true,
-       },
-
+      },
     });
 
     return NextResponse.json(post, { status: 200 });

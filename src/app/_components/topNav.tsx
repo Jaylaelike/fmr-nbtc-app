@@ -60,7 +60,7 @@ function topNav() {
           </a>
         </div>
         <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1">
+          {/* <ul className="menu menu-horizontal px-1">
             <li>
               <a
               onClick={() => {
@@ -86,7 +86,7 @@ function topNav() {
             <li>
               <a>ตั้งค่า</a>
             </li>
-          </ul>
+          </ul> */}
         </div>
 
         <div className="navbar-end space-x-4">

@@ -22,8 +22,7 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
   const {
     data: dataPost,
     isLoading: isLoadingPost,
-    isError,
-    error,
+
   } = useQuery({
     queryKey: ["posts", id],
     queryFn: async () => {
@@ -91,13 +90,12 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
     return localTime;
   };
 
-
   if (isLoadingPost) {
     return <span className="loading loading-lg"></span>;
   }
   return (
     <div>
-      <h1 className="my-4 text-center text-2xl font-bold">แก้ไขการบันทึก</h1>
+      <h1 className="text-2xl my-4 text-center font-bold">แก้ไขการบันทึก</h1>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-lg bg-red-300 p-4 text-white">
@@ -143,9 +141,9 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
               {...register("startTime", { required: true })}
               type="datetime-local"
               placeholder="Start DateTime"
-              defaultValue={dayjs(dataPost[0]?.startTime).subtract(7, 'hour').format(
-                "YYYY-MM-DDTHH:mm",
-              )}
+              defaultValue={dayjs(dataPost[0]?.startTime)
+                .subtract(7, "hour")
+                .format("YYYY-MM-DDTHH:mm")}
               className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
             />
             {errors.startTime && <span>This field is required</span>}
@@ -153,9 +151,9 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
               {...register("endTime", { required: true })}
               type="datetime-local"
               placeholder="End DateTime"
-              defaultValue={dayjs(dataPost[0]?.endTime).subtract(7, 'hour').format(
-                "YYYY-MM-DDTHH:mm",
-              )}
+              defaultValue={dayjs(dataPost[0]?.endTime)
+                .subtract(7, "hour")
+                .format("YYYY-MM-DDTHH:mm")}
               className="input input-bordered input-primary w-full max-w-xs p-5  text-gray-500"
             />
             {errors.endTime && <span>This field is required</span>}
@@ -175,6 +173,23 @@ const EditRecordsPage: FC<EditPostPageProps> = ({ params }) => {
               className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
             />
             {errors.dailyEndTime && <span>This field is required</span>}
+
+            {/* <input
+                {...register("bitrates", { required: true })}
+                type="text"
+                placeholder="128 kbps or 256 kbps"
+                defaultValue={dataPost[0]?.bitrates}
+                className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
+              /> */}
+
+            <select
+              {...register("bitrates", { required: true })}
+              defaultValue={dataPost[0]?.bitrates}
+              className="input-warning w-full max-w-xs p-5 text-gray-500"
+            >
+              <option value="128">128 kbps</option>
+              <option value="256">256 kbps</option>
+            </select>
 
             <div className="grid grid-cols-3 gap-2 space-x-2">
               {[

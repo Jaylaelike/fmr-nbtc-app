@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 import { useState, useRef } from "react";
+import { he } from "@vidstack/react/types/vidstack.js";
 
 interface FrequencyScaner {
   No: number;
@@ -48,42 +49,42 @@ export type MarkTypes =
   | 'heatmap'
   | 'liquid'
 
-const ChartEvent = {
-  EventType: 'event',
-  CLICK: 'click',
-  DBLCLICK: 'dblclick',
-  BEFORE_PAINT: 'beforepaint',
-  AFTER_PAINT: 'afterpaint',
-  BEFORE_CHANGE_DATA: 'beforechangedata',
-  AFTER_CHANGE_DATA: 'afterchangedata',
-  BEFORE_CLEAR: 'beforeclear',
-  AFTER_CLEAR: 'afterclear',
-  BEFORE_DESTROY: 'beforedestroy',
-  AFTER_DESTROY: 'afterdestroy',
-  BEFORE_CHANGE_SIZE: 'beforechangesize',
-  AFTER_CHANGE_SIZE: 'afterchangesize',
-  POINTER_TAP: 'pointertap',
-  POINTER_DOWN: 'pointerdown',
-  POINTER_UP: 'pointerup',
-  POINTER_OVER: 'pointerover',
-  POINTER_OUT: 'pointerout',
-  POINTER_MOVE: 'pointermove',
-  POINTER_ENTER: 'pointerenter',
-  POINTER_LEAVE: 'pointerleave',
-  POINTER_UPOUTSIDE: 'pointerupoutside',
-  DRAG_START: 'dragstart',
-  DRAG: 'drag',
-  DRAG_END: 'dragend',
-  DRAG_ENTER: 'dragenter',
-  DRAG_LEAVE: 'dragleave',
-  DRAG_OVER: 'dragover',
-  DROP: 'DROP',
-};
+// const ChartEvent = {
+//   EventType: 'event',
+//   CLICK: 'click',
+//   DBLCLICK: 'dblclick',
+//   BEFORE_PAINT: 'beforepaint',
+//   AFTER_PAINT: 'afterpaint',
+//   BEFORE_CHANGE_DATA: 'beforechangedata',
+//   AFTER_CHANGE_DATA: 'afterchangedata',
+//   BEFORE_CLEAR: 'beforeclear',
+//   AFTER_CLEAR: 'afterclear',
+//   BEFORE_DESTROY: 'beforedestroy',
+//   AFTER_DESTROY: 'afterdestroy',
+//   BEFORE_CHANGE_SIZE: 'beforechangesize',
+//   AFTER_CHANGE_SIZE: 'afterchangesize',
+//   POINTER_TAP: 'pointertap',
+//   POINTER_DOWN: 'pointerdown',
+//   POINTER_UP: 'pointerup',
+//   POINTER_OVER: 'pointerover',
+//   POINTER_OUT: 'pointerout',
+//   POINTER_MOVE: 'pointermove',
+//   POINTER_ENTER: 'pointerenter',
+//   POINTER_LEAVE: 'pointerleave',
+//   POINTER_UPOUTSIDE: 'pointerupoutside',
+//   DRAG_START: 'dragstart',
+//   DRAG: 'drag',
+//   DRAG_END: 'dragend',
+//   DRAG_ENTER: 'dragenter',
+//   DRAG_LEAVE: 'dragleave',
+//   DRAG_OVER: 'dragover',
+//   DROP: 'DROP',
+// };
 
 function ChartFrequencyAnt() {
   const [frequencyOnClick, setFrequencyOnClick] = useState<String>("0");
   const [snrOnClick, setSnrOnClick] = useState<number>(0);
-  const [updateChartValue, setUpdateChartValue] = useState<any>(null);
+  // const [updateChartValue, setUpdateChartValue] = useState<any>(null);
 
   console.log(frequencyOnClick);
 
@@ -98,7 +99,9 @@ function ChartFrequencyAnt() {
       refetchOnReconnect: true,
       queryFn: async () => {
         try {
-          const res = await axios.get(`http://localhost:4000/api/scanner`);
+          const res = await axios.get(
+            process.env.NEXT_PUBLIC_SERVER_SCAN_URL as string,
+          );
 
           return res;
         } catch (error) {
@@ -109,7 +112,7 @@ function ChartFrequencyAnt() {
       },
     });
 
-  const frequencyData: number[] = data?.data.map(
+  const frequencyData: number[] = data?.data?.map(
     (item: FrequencyScaner) => item.Data,
   );
 
@@ -150,7 +153,7 @@ function ChartFrequencyAnt() {
 
   console.log("newChartData", newChartData ?? "No data available");
 
-  const selectedRef = useRef();
+  // const selectedRef = useRef();
   // selectedRef.current = selectedInputValue;
 
   const config = {
@@ -164,6 +167,7 @@ function ChartFrequencyAnt() {
 
     style: {
       inset: 5,
+      height: 100,
 
       // 矩形单个方向的内边距
       // insetLeft:5,
@@ -174,6 +178,7 @@ function ChartFrequencyAnt() {
     label: {
       text: "frequency",
       position: "inside",
+      
       transform: [
         {
           type: "contrastReverse",
@@ -213,7 +218,7 @@ function ChartFrequencyAnt() {
   };
 
   return (
-    <div>
+    <div className="h-80">
       <Column
         {...config}
         onReady={({ chart }) => {

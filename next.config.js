@@ -15,8 +15,8 @@ const config = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'tailwind-generator.b-cdn.net',
+        protocol: "https",
+        hostname: "tailwind-generator.b-cdn.net",
       },
     ],
   },
@@ -25,6 +25,7 @@ const config = {
       fullUrl: true,
     },
   },
+  crossOrigin: "anonymous",
 };
 
 export default config;

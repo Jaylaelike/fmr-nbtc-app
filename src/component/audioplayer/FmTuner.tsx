@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import SlideRule from "react-slide-rule-fork";
 
-import { Rewind, FastForward, CirclePower, Power, PowerOff } from "lucide-react";
+import {
+  Rewind,
+  FastForward,
+  CirclePower,
+  Power,
+  PowerOff,
+} from "lucide-react";
 import Counter from "./Counter";
 
 const [min, max, step] = [87, 108, 0.25];
@@ -42,7 +48,7 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
 
   // update state value send "S" to websocket "ws://192.168.185.85:3000/Status_FM" to get current state
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Status_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Status_FM");
     //send value to websocket
     ws.onopen = () => {
       //console.log("Connected to devices");
@@ -310,7 +316,7 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
     //   console.error("Failed to play audio:", error);
     // });
 
-    const ws = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
 
     //send value to websocket
     ws.onopen = () => {
@@ -395,7 +401,7 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
     //   console.error("Failed to play audio:", error);
     // });
 
-    const ws = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
 
     //send value to websocket
     ws.onopen = () => {
@@ -421,7 +427,7 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const newWs = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const newWs = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
     setWs(newWs);
 
     newWs.onmessage = (event: MessageEvent) => {
@@ -465,7 +471,6 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
         console.log("WebSocket is not open. ReadyState:", ws.readyState);
         // Optional: Handle the case when WebSocket is not open
       }
-
     }
 
     // // setIsOn and send "611" == on ,"610" === off by lenght of messages position 1 is tunerStateChanel example "6" + tunerStateChanel + "1" === on and "6" + tunerStateChanel + "0" === off
@@ -503,22 +508,20 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
       oscillator.disconnect();
     }, 300);
 
-      //Send "610" == on by tunerStateChanel for button ON and close websocket
-      if (ws) {
-        // Construct the message based on isOn state and tunerStateChannel
-        const message = "6" + tunerStateChanel + "0";
-  
-        // Check if WebSocket connection is open
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(message);
-          setIsOn(!isOn); // Toggle the state
-        } else {
-          console.log("WebSocket is not open. ReadyState:", ws.readyState);
-          // Optional: Handle the case when WebSocket is not open
-        }
-  
-      
+    //Send "610" == on by tunerStateChanel for button ON and close websocket
+    if (ws) {
+      // Construct the message based on isOn state and tunerStateChannel
+      const message = "6" + tunerStateChanel + "0";
+
+      // Check if WebSocket connection is open
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(message);
+        setIsOn(!isOn); // Toggle the state
+      } else {
+        console.log("WebSocket is not open. ReadyState:", ws.readyState);
+        // Optional: Handle the case when WebSocket is not open
       }
+    }
     // // setIsOn and send "611" == on ,"610" === off by lenght of messages position 1 is tunerStateChanel example "6" + tunerStateChanel + "1" === on and "6" + tunerStateChanel + "0" === off
     // if (ws) {
     //   // Construct the message based on isOn state and tunerStateChannel
@@ -548,7 +551,7 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
 
   //Control FM Frequency to devices websocket
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
 
     //send value to websocket
     ws.onopen = () => {
@@ -610,10 +613,10 @@ export default function FmTuner({ tunerStateChanel }: Propstype) {
           </div>
           <div className="grid grid-cols-1 justify-stretch space-y-4">
             <button className="btn bg-green-500" onClick={toggleOnSwitch}>
-            <Power />
+              <Power />
             </button>
             <button className="btn btn-error" onClick={toggleOffSwitch}>
-            <PowerOff />
+              <PowerOff />
             </button>
           </div>
           <div>

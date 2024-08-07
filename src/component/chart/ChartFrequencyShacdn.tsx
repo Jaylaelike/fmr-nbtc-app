@@ -77,7 +77,7 @@ export default function ChartFrequencyShacdn({ chartDatas }: ProspType) {
   console.log(frequencyData);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Control_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Control_FM");
     //send value to websocket
     ws.onopen = () => {
       // Connected to devices, send "SCAN"

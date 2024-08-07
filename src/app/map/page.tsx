@@ -235,7 +235,9 @@ export default function Page() {
       refetchOnReconnect: true,
       queryFn: async () => {
         try {
-          const res = await axios.get("http://localhost:4000/api/station");
+          const res = await axios.get(
+            process.env.NEXT_PUBLIC_SERVER_STATION_URL!,
+          );
 
           // setLocations(res.data as StationList[]);
 

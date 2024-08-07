@@ -76,7 +76,7 @@ function ModalTags({
 
   //sent "F" to get frequency array from websocket  for frequencyChart
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Status_FM_Chart");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Status_FM_Chart");
     //send value to websocket
     ws.onopen = () => {
       //console.log("Connected to devices");
@@ -122,7 +122,7 @@ function ModalTags({
 
   //get status of Chanel FM from websocket
   useEffect(() => {
-    const ws = new WebSocket("ws://172.16.116.32:3000/Status_FM");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL + "Status_FM");
 
     let latestData = null; // Store the latest data received
     //send value to websocket

@@ -41,7 +41,9 @@ function Minimaps({ id }: MiniMpasIdProps) {
     queryKey: ["station", id],
     queryFn: async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/station/${id}`);
+        const res = await axios.get(
+          process.env.NEXT_PUBLIC_SERVER_STATION_URL + `${id}`,
+        );
 
         return res;
       } catch (error) {
@@ -52,7 +54,6 @@ function Minimaps({ id }: MiniMpasIdProps) {
     },
   });
 
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -61,9 +62,10 @@ function Minimaps({ id }: MiniMpasIdProps) {
     return <div>Error...</div>;
   }
 
-
-
-  const position: LatLngExpression = [data?.data[0].Latitude, data?.data[0].Longitude];
+  const position: LatLngExpression = [
+    data?.data[0].Latitude,
+    data?.data[0].Longitude,
+  ];
 
   console.log(position);
 
@@ -72,7 +74,7 @@ function Minimaps({ id }: MiniMpasIdProps) {
       center={position || null}
       zoom={13}
       scrollWheelZoom={true}
-      style={{ height: "300px", width: "100%" }}
+      style={{ height: "200px", width: "100%" }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

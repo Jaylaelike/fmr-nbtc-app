@@ -30,7 +30,9 @@ export function ChartFrequncyNivo() {
       refetchOnReconnect: true,
       queryFn: async () => {
         try {
-          const res = await axios.get(`http://localhost:4000/api/scanner`);
+          const res = await axios.get(
+            process.env.NEXT_PUBLIC_SERVER_SCAN_URL as string,
+          );
 
           return res;
         } catch (error) {

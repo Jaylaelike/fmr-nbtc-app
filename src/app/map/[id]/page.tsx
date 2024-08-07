@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import axios from "axios";
 
@@ -16,11 +16,11 @@ import Minimaps from "~/component/minimaps/Minimaps";
 import { debounce } from "lodash";
 
 import ChartFrequencyAnt from "~/component/chart/ChartFrequencyAnt";
-import { useForm, SubmitHandler } from "react-hook-form";
+// import { useForm, SubmitHandler } from "react-hook-form";
 
-import { useMutation } from "@tanstack/react-query";
-import { CreateRecord } from "~/server/data";
-import { useRouter } from "next/navigation";
+// import { useMutation } from "@tanstack/react-query";
+// import { CreateRecord } from "~/server/data";
+// import { useRouter } from "next/navigation";
 
 import AlertDialogDelButton from "~/component/dialog/alertDialogDelButton";
 import dayjs from "dayjs";
@@ -29,9 +29,17 @@ import timezone from "dayjs/plugin/timezone";
 
 import { Tv, DownloadIcon } from "lucide-react";
 
-import Loading from "~/app/loading";
 import TableAudioRecord from "~/component/table/TableAudioRecord";
 import isBetween from "dayjs/plugin/isBetween";
+import IconRipple from "~/components/animata/icon/con-ripple";
+
+import Datepicker from "react-tailwindcss-datepicker";
+
+import { fromEvent } from "rxjs";
+import { throttleTime } from "rxjs/operators";
+import ClockDigitTimer from "~/component/clock/clockDigitTimer";
+import CreateModal from "~/component/popup/CreateModal";
+import EditModal from "~/component/popup/EditModal";
 
 dayjs.extend(isBetween);
 
@@ -44,39 +52,14 @@ interface MapsId {
   };
 }
 
-// this data HistoryRecord
-// [
-//   {
-//   id: 11,
-//   recordId: "0190e3d2-d12d-7f2f-adb7-ec93e1a177fe",
-//   urls: "https://tisxquhwharbxlrwzycc.supabase.co/storage/v1/object/public/songs/FM1/Wed_Jul_24_2024_15:21.wav",
-//   createdAt: "2024-07-24T15:19:22.000Z",
-//   updatedAt: null,
-//   record: {
-//   id: 10,
-//   recordIds: "0190e3d2-d12d-7f2f-adb7-ec93e1a177fe",
-//   stationId: 61,
-//   ipAddress: "101.101.34.56",
-//   startTime: "2024-07-24T15:18:00.000Z",
-//   endTime: "2024-07-24T15:21:00.000Z",
-//   frequncy: "101.55",
-//   dayofweek: "3",
-//   dailyStartTime: "15:18:00.000000",
-//   dailyEndTime: "15:21:00.000000",
-//   channel: "FM 1",
-//   userId: "user_2j93p6BFv3bnGGBX2n9QAqBBCrp",
-//   username: "สิทธิชัย มากวิสัย",
-//   createdAt: "2024-07-24T15:19:22.000Z",
-//   updatedAt: null
-//   }
-//   },
-// ]
 interface HistoryRecord {
   id: number;
   recordId: string;
   urls: string;
   createdAt: string;
   updatedAt: string;
+  startTime: string;
+  endTime: string;
   record: {
     id: number;
     recordIds: string;
@@ -98,10 +81,11 @@ interface HistoryRecord {
 
 interface RecordType {
   id: number;
+  urls: string;
   stationId: number;
   ipAddress: string;
-  // startTime: string;
-  // endTime: string;
+  startTime: string;
+  endTime: string;
   channel: string;
   frequncy: string;
   userId: string;
@@ -142,7 +126,7 @@ function ModalTags({ params: { id } }: MapsId) {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(
-        "http://localhost:4000/api/station/" + `${id}`,
+        process.env.NEXT_PUBLIC_SERVER_STATION_URL + `${id}`,
       );
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const data = await response.json();
@@ -169,8 +153,8 @@ function ModalTags({ params: { id } }: MapsId) {
 
   const isSelected = (device: string) => {
     return selectedFmDevice === device
-      ? "bg-gradient-to-b from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%"
-      : "bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500";
+      ? "bg-gradient-to-b  from-fuchsia-500 to-cyan-500"
+      : "bg-gradient-to-b from-violet-500 to-orange-300";
   };
 
   // //fetch data raduis distance from station use useQuery
@@ -250,13 +234,14 @@ function ModalTags({ params: { id } }: MapsId) {
           queryKey: [latitudeData[0], longitudeData[0], distance, id],
           queryFn: (): Promise<StationList> =>
             axios.get(
-              `http://localhost:4000/api/station/${latitudeData[0]}/${longitudeData[0]}/${distance}`,
+              process.env.NEXT_PUBLIC_SERVER_STATION_URL +
+                `${latitudeData[0]}/${longitudeData[0]}/${distance}`,
             ),
         },
         {
           queryKey: ["scanner"],
           queryFn: (): Promise<FrequencyScaner> =>
-            axios.get("http://localhost:4000/api/scanner"),
+            axios.get(process.env.NEXT_PUBLIC_SERVER_SCAN_URL as string),
         },
         {
           queryKey: ["records", id],
@@ -294,13 +279,13 @@ function ModalTags({ params: { id } }: MapsId) {
     ],
   );
 
-  console.log(frequencyNewData);
+  //console.log(frequencyNewData);
 
   //find `filterHistoryRecordEvent` find the item.record.stationId === id
 
   const filterHistoryRecordEventStationId =
     filterHistoryRecordEvent.data?.data.filter(
-      (item: HistoryRecord) => item.record.stationId == id,
+      (item: HistoryRecord) => item.stationIds == id ?? null,
     );
 
   // console.log(filterHistoryRecordEventStationId);
@@ -320,45 +305,45 @@ function ModalTags({ params: { id } }: MapsId) {
     setDistance(value);
   }, 100);
 
-  // Using react-hook-form to manage form state and submission
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
+  // // Using react-hook-form to manage form state and submission
+  // const {
+  //   register,
+  //   handleSubmit,
+  //   formState: { errors },
+  //   reset,
+  // } = useForm();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const handleCreatRecords: SubmitHandler<CreateRecord> = async (data) => {
-    setIsSubmitting(true);
-    // Your form submission logic here
-    try {
-      // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      // If submission is successful or you need to allow re-submission, reset the state
-    } catch (error) {
-      // Handle error
-    }
-    setIsSubmitting(false); // Re-enable the button after form processing
-    createRecords(data);
-  };
+  // const [isSubmitting, setIsSubmitting] = useState(false);
+  // const handleCreatRecords: SubmitHandler<CreateRecord> = async (data) => {
+  //   setIsSubmitting(true);
+  //   // Your form submission logic here
+  //   try {
+  //     // Simulate form submission
+  //     await new Promise((resolve) => setTimeout(resolve, 3000));
+  //     // If submission is successful or you need to allow re-submission, reset the state
+  //   } catch (error) {
+  //     // Handle error
+  //   }
+  //   setIsSubmitting(false); // Re-enable the button after form processing
+  //   createRecords(data);
+  // };
 
-  const router = useRouter();
+  // const router = useRouter();
 
-  const { mutate: createRecords, isPending } = useMutation({
-    mutationFn: (newRecord: CreateRecord) => {
-      return axios.post("/api/records/create", newRecord);
-    },
-    onError: (error) => {
-      console.log(error);
-    },
-    onSuccess: (data) => {
-      console.log(data);
-      location.reload();
-      reset();
-      router.push(`/map/${id}`);
-    },
-  });
+  // const { mutate: createRecords, isPending } = useMutation({
+  //   mutationFn: (newRecord: CreateRecord) => {
+  //     return axios.post("/api/records/create", newRecord);
+  //   },
+  //   onError: (error) => {
+  //     console.log(error);
+  //   },
+  //   onSuccess: (data) => {
+  //     console.log(data);
+  //     location.reload();
+  //     reset();
+  //     router.push(`/map/${id}`);
+  //   },
+  // });
 
   //get Dayofweek
   const getDayofweek = (day: string): string => {
@@ -384,20 +369,72 @@ function ModalTags({ params: { id } }: MapsId) {
     }
   };
 
-  //create state reload <tbody> only  every 10 sec for update status record
+  //create datepicker
+  //create filter date from datepicker for filter history record event
+  //only Date format
+  const [values, setValues] = useState({
+    startDate: new Date(),
+    endDate: new Date(),
+  });
+
+  const handleValueChange = (
+    newValue: SetStateAction<{ startDate: Date; endDate: number }>,
+  ) => {
+    //console.log("newValue:", newValue);
+    setValues(newValue);
+
+    setStartDates(new Date(newValue.startDate));
+    setEndDates(new Date(newValue.endDate));
+  };
+
+  const [startDates, setStartDates] = useState(null);
+  const [endDates, setEndDates] = useState(null);
+
+  //console.log(startDates);
+  //console.log(endDates);
+
+  const [
+    filterHistoryRecordEventStationIdDate,
+    setFilterHistoryRecordEventStationIdDate,
+  ] = useState<HistoryRecord[]>([]);
+  useEffect(() => {
+    setFilterHistoryRecordEventStationIdDate(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      filterHistoryRecordEventStationId
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        ?.filter((item: HistoryRecord) =>
+          dayjs(item.endTime).isBetween(startDates, endDates),
+        ),
+    );
+  }, [startDates, endDates]);
+
+  //console.log(filterHistoryRecordEventStationIdDate);
+
+  //create observable scroll event for reload <tbody> every 10 sec  for update status record  using rxjs
+
   const [reload, setReload] = useState(false);
   useEffect(() => {
-    const interval = setInterval(() => {
-      setReload(!reload);
-    }, 10000);
-    return () => clearInterval(interval);
+    const scrollObservable = fromEvent(
+      document.getElementsByClassName(
+        "col-span-2 w-full rounded-lg bg-red-400 p-4 text-white",
+      ),
+      "click",
+    ).pipe(
+      throttleTime(1000), // Throttle the scroll events to once per second
+    );
+
+    const subscription = scrollObservable.subscribe(() => {
+      setReload((prev) => !prev); // Toggle reload state
+    });
+
+    return () => subscription.unsubscribe();
   }, [reload]);
 
   return (
     <main className="flex-col items-center justify-center p-10 pt-20">
       <div className="grid grid-flow-col grid-rows-3 gap-4 px-4 py-4 leading-10">
-        <div className="row-span-3 w-full space-y-2 rounded-xl bg-red-400 p-4">
-          <h2 className="card-title text-3xl text-white">Distance Scan</h2>
+        <div className="row-span-3 w-full space-y-2 rounded-xl bg-gradient-to-b from-purple-500 to-red-400 p-4">
+          <h2 className="text-3xl card-title text-white">Distance Scan</h2>
 
           <div className="grid grid-cols-1 justify-items-center gap-4">
             <div className="justify-items-between grid grid-cols-2 gap-2 px-4 py-4 xl:grid-cols-4">
@@ -429,8 +466,8 @@ function ModalTags({ params: { id } }: MapsId) {
             <input
               type="number"
               placeholder="ระยะทาง (KM)"
-              className="input input-bordered  w-full max-w-xs 
-            bg-red-400 text-3xl"
+              className="text-3xl input  input-bordered w-full 
+            max-w-xs bg-gradient-to-b from-purple-500 to-red-400"
               value={distance}
               onChange={(e) => debouncedSetDistance(parseInt(e.target.value))}
               max={50}
@@ -449,11 +486,11 @@ function ModalTags({ params: { id } }: MapsId) {
             </div>
           </div>
         </div>
-        <div className="col-span-2 w-full rounded-xl bg-red-400 p-4 text-3xl text-white">
+        <div className="text-3xl col-span-2 w-full rounded-xl bg-gradient-to-b from-purple-500 to-red-400 p-4 text-white">
           สถานี : {dataStation.map((item) => item.Station_Name)}
         </div>
 
-        <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4 text-3xl text-white">
+        <div className="text-3xl col-span-2 row-span-2 w-full rounded-xl bg-gradient-to-b from-purple-500 to-red-400 p-4 text-white">
           <Minimaps id={id} />
         </div>
 
@@ -463,7 +500,7 @@ function ModalTags({ params: { id } }: MapsId) {
             </div> */}
       </div>
 
-      <section className="grid justify-items-center rounded-lg bg-red-400 p-4 text-white  md:grid-cols-3">
+      <section className="grid justify-items-center rounded-lg bg-gradient-to-r from-rose-400 to-orange-300 p-4 text-white  md:grid-cols-3">
         <h2 className="text-2xl font-bold">FM Devices : {selectedFmDevice}</h2>
 
         <div className="mt-4 flex flex-wrap justify-items-center gap-4">
@@ -480,15 +517,15 @@ function ModalTags({ params: { id } }: MapsId) {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 space-y-3 p-4 md:grid-cols-3">
-        <div className="col-span-3 rounded-lg bg-red-400 p-4 text-white">
+      <section className="grid h-4/5 grid-cols-1 space-y-3 p-4 md:grid-cols-3">
+        <div className="col-span-3 rounded-lg bg-gradient-to-b from-purple-500 to-red-400 p-4 text-white">
           <h2 className="text-2xl font-bold">Frequency Chart</h2>
 
           <ChartFrequencyAnt />
         </div>
 
-        <div className="col-span-3 row-span-3 w-full rounded-xl bg-red-400 ">
-          <div className="row-span-3 w-full  p-4 text-3xl text-white">
+        <div className="col-span-3 row-span-3 w-full rounded-xl bg-gradient-to-b from-purple-500 to-red-400 ">
+          <div className="text-3xl row-span-3  w-full p-4 text-white">
             Frequency Table
           </div>
 
@@ -496,7 +533,7 @@ function ModalTags({ params: { id } }: MapsId) {
             <ChartFrequency />
           </div> */}
 
-          <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
+          <div className="col-span-2 row-span-2 w-full rounded-xl bg-gradient-to-b from-purple-500 to-red-400 p-4">
             <TableFrequncy
               stations={stationsData}
               loading={isFetchingStationsData}
@@ -533,11 +570,11 @@ function ModalTags({ params: { id } }: MapsId) {
         </div> */}
       </section>
 
-      {isPending ? (
+      {/* {isPending ? (
         <Loading />
       ) : (
-        <section className="grid  gap-4 p-4 md:grid-cols-3">
-          <div className="rounded-lg bg-red-400 p-4 text-white ">
+        <section className="grid grid-cols-1 space-y-3 p-4 md:grid-cols-3"> */}
+      {/* <div className="rounded-lg bg-red-400 p-4 text-white ">
             <h2 className="text-2xl font-bold">Recording Setup</h2>
 
             <form
@@ -564,7 +601,7 @@ function ModalTags({ params: { id } }: MapsId) {
               <input
                 {...register("ipAddress", { required: true })}
                 type="text"
-                value={"101.101.34.56"}
+                value={"172.16.116.124"}
                 placeholder="IP Address"
                 className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
               />
@@ -576,6 +613,7 @@ function ModalTags({ params: { id } }: MapsId) {
                 className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
               />
               {errors.frequency && <span>This field is required</span>}
+
               <input
                 {...register("startTime", { required: true })}
                 type="datetime-local"
@@ -604,6 +642,17 @@ function ModalTags({ params: { id } }: MapsId) {
                 className="input input-bordered input-primary w-full max-w-xs p-5 text-gray-500"
               />
               {errors.dailyEndTime && <span>This field is required</span>}
+
+      
+
+              <select
+                {...register("bitrates", { required: true })}
+                defaultValue="128"
+                className="input-warning w-full max-w-xs p-5 text-gray-500"
+              >
+                <option value="128">128 kbps</option>
+                <option value="256">256 kbps</option>
+              </select>
 
               <div className="grid grid-cols-3 gap-2 space-x-2">
                 {[
@@ -638,69 +687,86 @@ function ModalTags({ params: { id } }: MapsId) {
                 Submit
               </button>
             </form>
-          </div>
-
-          <div className="col-span-2 w-full rounded-lg bg-red-400 p-4 text-white">
-            <div className="row-span-3 w-full  p-4 text-3xl text-white">
+          </div> */}
+      <section className="grid grid-cols-1 space-y-3 p-4 md:grid-cols-3">
+        <div className="col-span-3 row-span-3 w-full rounded-lg bg-gradient-to-b from-purple-500 to-red-400 p-4 text-white">
+          <div className="grid grid-cols-2 justify-evenly">
+            <div className="text-3xl row-span-3  w-full p-4 text-white">
               FM Configurations
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="table table-zebra text-black">
-                {/* head */}
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Status</th>
-                    <th>Station ID</th>
-                    <th>IP Address</th>
-                    <th>Channel</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Day of Week</th>
-                    <th>Daily Start Time</th>
-                    <th>Daily End Time</th>
-                    <th>Frequency</th>
+            <div className="text-3xl row-span-3  p-4 text-white">
+              <CreateModal id={id} />
+              <ClockDigitTimer />
+            </div>
+          </div>
 
-                    <th>User Name</th>
-                  </tr>
-                </thead>
+          <div className="overflow-x-auto">
+            <table className="table table-zebra text-black">
+              {/* head */}
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Status</th>
+                  <th>Station ID</th>
+                  <th>IP Address</th>
+                  <th>Channel</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Day of Week</th>
+                  <th>Daily Start Time</th>
+                  <th>Daily End Time</th>
+                  <th>Frequency</th>
 
-                {/* body */}
-                <tbody>
-                  {recordsData.data?.data
-                    .filter(
-                      (item: RecordType) =>
-                        selectedFmDevice === "" ||
-                        item.channel === selectedFmDevice,
-                    )
-                    .map((item: RecordType) => {
-                      // Convert item start and end times to Date objects
-                      const startTime = dayjs(item.startTime).subtract(
-                        7,
-                        "hour",
-                      );
-                      const endTime = dayjs(item.endTime).subtract(7, "hour");
-                      // Get current time
-                      const now = dayjs();
-                      // Determine if now is within the start and end times in 10 sec intervals
+                  <th>User Name</th>
+                </tr>
+              </thead>
 
-                      const isActive =
-                        now.isAfter(startTime) && now.isBefore(endTime);
+              {/* body */}
+              <tbody>
+                {recordsData.data?.data
+                  .filter(
+                    (item: RecordType) =>
+                      selectedFmDevice === "" ||
+                      item.channel === selectedFmDevice,
+                  )
+                  .map((item: RecordType) => {
+                    // Convert item start and end times to Date objects
 
-                      // Determine if now is before the start time
-                      const isBefore = now.isBefore(startTime);
+                    // const startTime = dayjs(item.startTime).subtract(7, "hour").format("DD-MM-YYYY HH:mm");
 
-                      return (
-                        <tr key={item.id}>
-                          <td>{item.id}</td>
-                          <td>
-                            {(reload && (
+                    // const endTime = dayjs(item.endTime).subtract(7, "hour").format("DD-MM-YYYY HH:mm");
+
+                    const startTime = dayjs(item.startTime).subtract(7, "hour");
+                    const endTime = dayjs(item.endTime).subtract(7, "hour");
+                    // Get current time
+                    const now = dayjs();
+
+                    // Determine if now is within the start and end times in 10 sec intervals
+
+                    const isActive =
+                      now.isAfter(startTime) && now.isBefore(endTime);
+
+                    // Determine if now is before the start time
+                    const isBefore = now.isBefore(startTime);
+
+                    return (
+                      <tr key={item.id}>
+                        <td>{item.id}</td>
+
+                        {/* {reload && (
+                            <UpdateTableRecords
+                              isActives={isActive || null}
+                              isBefores={isBefore || null}
+                            />
+                          )} */}
+
+                        {reload ? (
+                          <>
+                            <td>
                               <>
                                 {isActive ? (
-                                  <div className="badge badge-warning">
-                                    Pending
-                                  </div>
+                                  <IconRipple />
                                 ) : isBefore ? (
                                   <div className="badge badge-ghost text-nowrap">
                                     No Active
@@ -711,88 +777,83 @@ function ModalTags({ params: { id } }: MapsId) {
                                   </div>
                                 )}
                               </>
-                            )) || (
-                              <>
-                                <span className="loading loading-spinner loading-md size-full"></span>
-                              </>
-                            )}
-                          </td>
-                          <td>{item.stationId}</td>
-                          <td>{item.ipAddress}</td>
-                          <td>{item.channel}</td>
-                          <td>{startTime.format("DD-MM-YYYY HH:mm:ss")}</td>
-                          <td>{endTime.format("DD-MM-YYYY HH:mm:ss")}</td>
-                          <td>{getDayofweek(item.dayofweek.toString())}</td>
-                          <td>{item.dailyStartTime?.slice(0, -7)}</td>
-                          <td>{item.dailyEndTime?.slice(0, -7)}</td>
-                          <td>{item.frequncy}</td>
-                          <td>{item.username}</td>
+                            </td>
+                          </>
+                        ) : (
                           <td>
-                            <AlertDialogDelButton
-                              alertId={item.id}
-                              stationIds={id}
-                            />
-                            <button
+                            <>
+                              {isActive ? (
+                                <IconRipple />
+                              ) : isBefore ? (
+                                <div className="badge badge-ghost text-nowrap">
+                                  No Active
+                                </div> // Changed badge for "No Active" state
+                              ) : (
+                                <div className="badge badge-success">
+                                  Success
+                                </div>
+                              )}
+                            </>
+                          </td>
+                        )}
+
+                        <td>{item.stationId}</td>
+                        <td>{item.ipAddress}</td>
+                        <td>{item.channel}</td>
+                        <td>
+                          {dayjs(item.startTime)
+                            .subtract(7, "hour")
+                            .format("DD-MM-YYYY HH:mm")}
+                        </td>
+                        <td>
+                          {dayjs(item.endTime)
+                            .subtract(7, "hour")
+                            .format("DD-MM-YYYY HH:mm")}
+                        </td>
+
+                        <td>{getDayofweek(item.dayofweek.toString())}</td>
+                        <td>{item.dailyStartTime?.slice(0, -7)}</td>
+                        <td>{item.dailyEndTime?.slice(0, -7)}</td>
+                        <td>{item.frequncy}</td>
+                        <td>{item.username}</td>
+
+                        <td>
+                          <AlertDialogDelButton
+                            alertId={item.id}
+                            stationIds={id}
+                          />
+                          {/* <button
                               className="btn-danger btn"
                               onClick={() => router.push(`/edit/${item.id}`)}
                             >
-                              แก้ไข
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  {/* //   <tr key={item.id}>
-                    //     <td>{item.id}</td>
-                    //     <td>{item.stationId}</td>
-                    //     <td>{item.ipAddress}</td>
-                    //     <td>{item.channel}</td>
-                    //     <td>
-                    //       {dayjs(item.startTime)
-                    //         .subtract(7, "hour")
-                    //         .format("DD-MM-YYYY HH:mm:ss")}
-                    //     </td>
-                    //     <td>
-                    //       {dayjs(item.endTime)
-                    //         .subtract(7, "hour")
-                    //         .format("DD-MM-YYYY HH:mm:ss")}
-                    //     </td>
-                    //     <td>{getDayofweek(item.dayofweek.toString())}</td>
-                    //     <td>{item.dailyStartTime?.slice(0, -7)}</td>
-                    //     <td>{item.dailyEndTime?.slice(0, -7)}</td>
-                    //     <td>{item.frequncy}</td>
-                    //     <td>{item.username}</td>
-                    //     <td>
-                    //       <td>
-                    //         <AlertDialogDelButton
-                    //           alertId={item.id}
-                    //           stationIds={id}
-                    //         />
-                    //       </td>
-
-                    //       <button
-                    //         className="btn-danger btn"
-                    //         onClick={() => router.push(`/edit/${item.id}`)}
-                    //       >
-                    //         แก้ไข
-                    //       </button>
-                    //     </td>
-                    //   </tr>
-                    // ))} */}
-                </tbody>
-              </table>
-            </div>
+                              <PencilIcon />
+                            </button> */}
+                          <EditModal id={item.id} pagesId={id} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <section className="grid grid-cols-1 space-y-3 p-4 md:grid-cols-3">
-        <div className="col-span-3 row-span-3 w-full rounded-xl bg-red-400 ">
-          <div className="row-span-3 w-full  p-4 text-3xl text-white">
+        <div className="col-span-3 row-span-3 w-full rounded-xl bg-gradient-to-b from-purple-500 to-red-400">
+          <div className="text-3xl row-span-3  w-full p-4 text-white">
             Event Record
           </div>
 
-          <div className="col-span-2 row-span-2 w-full rounded-xl bg-red-400 p-4">
+          <div className="text-3xl row-span-3  w-full p-4 text-white">
+            <Datepicker
+              value={values}
+              onChange={handleValueChange}
+              primaryColor={"rose"}
+            />
+          </div>
+
+          <div className="col-span-2 row-span-2 w-full rounded-xl bg-gradient-to-b from-purple-500 to-red-400 p-4">
             <div className="overflow-x-auto">
               <table className="table">
                 {/* head */}
@@ -800,56 +861,152 @@ function ModalTags({ params: { id } }: MapsId) {
                   <tr>
                     <th></th>
                     <th>id</th>
-                    <th>audioUrl</th>
-                    <th>dailyStartTime</th>
+                    {/* <th>chanel</th> */}
+                    {/* <th>dailyStartTime</th>
                     <th>dailyEndTime</th>
+                    */}
                     <th>Downloads</th>
+                    <th>Frequency</th>
+                    <th>StationId</th>
                   </tr>
                 </thead>
 
-                <tbody>
-                  {filterHistoryRecordEventStationId?.map(
-                    (item: RecordType) => {
-                      return (
-                        <tr key={item.id}>
-                          <td>{item.id}</td>
-                          <td>
-                            <TableAudioRecord urls={item.urls} />
-                          </td>
+                {endDates === null ? (
+                  <tbody>
+                    {filterHistoryRecordEventStationId?.map(
+                      (item: RecordType) => {
+                        return (
+                          <tr key={item.id}>
+                            <td>{item.id}</td>
 
-                          <td>{item.record.dailyStartTime}</td>
-                          <td>{item.record.dailyEndTime}</td>
-                          <td>
-                            <button className="btn btn-warning">
-                              <DownloadIcon
-                                onClick={() => {
-                                  ///download audio file blob form url
+                            <td>
+                              <TableAudioRecord urls={item.urls} />
+                            </td>
+                            {/* <td>{item.record.channel}</td> */}
 
-                                  void fetch(item.urls)
-                                    .then((response) => response.blob())
-                                    .then((blob) => {
-                                      const url = window.URL.createObjectURL(
-                                        new Blob([blob]),
-                                      );
-                                      const link = document.createElement("a");
-                                      link.href = url;
-                                      link.setAttribute(
-                                        "download",
-                                        "audio.wav",
-                                      );
-                                      document.body.appendChild(link);
-                                      link.click();
-                                      link.parentNode?.removeChild(link);
-                                    });
-                                }}
-                              />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    },
-                  )}
-                </tbody>
+                            {/* <td>{item.dailyStartTime}</td>
+                          <td>{item.dailyEndTime}</td> */}
+
+                            <td>
+                              <button className="btn btn-warning">
+                                <DownloadIcon
+                                  onClick={() => {
+                                    ///download audio file blob form url
+
+                                    void axios({
+                                      url: "http://172.16.116.124/Audio/MP3/172_16_116_124_20240805_12-14-00_FM1(9425kHz).mp3",
+                                      method: "GET",
+                                      responseType: "blob",
+                                      headers: {
+                                        "Cache-Control": "force-cache",
+                                      },
+                                    })
+                                      .then((response) => {
+                                        const url = window.URL.createObjectURL(
+                                          new Blob([response.data]),
+                                        );
+                                        const link =
+                                          document.createElement("a");
+                                        link.href = url;
+                                        link.setAttribute(
+                                          "download",
+                                          "audio.mp3",
+                                        );
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        link.parentNode?.removeChild(link);
+                                      })
+                                      .catch((error) => {
+                                        console.error(
+                                          "Error fetching the audio file:",
+                                          error,
+                                        );
+                                      });
+
+                                    // void fetch(
+                                    //   "http://172.16.116.124/Audio/MP3/172_16_116_124_20240805_12-14-00_FM1(9425kHz).mp3",
+                                    //   { cache: "force-cache" },
+                                    // )
+                                    //   .then((response) => response.blob())
+                                    //   .then((blob) => {
+                                    //     const url = window.URL.createObjectURL(
+                                    //       new Blob([blob]),
+                                    //     );
+                                    //     const link =
+                                    //       document.createElement("a");
+                                    //     link.href = url;
+                                    //     link.setAttribute(
+                                    //       "download",
+                                    //       "audio.mp3",
+                                    //     );
+                                    //     document.body.appendChild(link);
+                                    //     link.click();
+                                    //     link.parentNode?.removeChild(link);
+                                    //   });
+                                  }}
+                                />
+                              </button>
+                            </td>
+
+                            <td>{item.frequencies}</td>
+                            <td>{item.stationIds}</td>
+                          </tr>
+                        );
+                      },
+                    )}
+                  </tbody>
+                ) : (
+                  <tbody>
+                    {filterHistoryRecordEventStationIdDate?.map(
+                      (item: RecordType) => {
+                        return (
+                          <tr key={item.id}>
+                            <td>{item.id}</td>
+
+                            <td>
+                              <TableAudioRecord urls={item.urls} />
+                            </td>
+                            {/* <td>{item.record.channel}</td> */}
+
+                            {/* <td>{item.dailyStartTime}</td>
+          <td>{item.dailyEndTime}</td> */}
+
+                            <td>
+                              <button className="btn btn-warning">
+                                <DownloadIcon
+                                  onClick={() => {
+                                    ///download audio file blob form url
+
+                                    void fetch(item.urls)
+                                      .then((response) => response.blob())
+                                      .then((blob) => {
+                                        const url = window.URL.createObjectURL(
+                                          new Blob([blob]),
+                                        );
+                                        const link =
+                                          document.createElement("a");
+                                        link.href = url;
+                                        link.setAttribute(
+                                          "download",
+                                          "audio.mp3",
+                                        );
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        link.parentNode?.removeChild(link);
+                                      });
+                                  }}
+                                />
+                              </button>
+                            </td>
+
+                            <td>{item.frequencies}</td>
+                            <td>{item.stationIds}</td>
+                          </tr>
+                        );
+                      },
+                    )}
+                  </tbody>
+                )}
               </table>
             </div>
           </div>
